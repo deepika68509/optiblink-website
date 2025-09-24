@@ -16,7 +16,25 @@
   
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Montserrat', sans-serif;
-    color: #FDFCF9;
+    @apply bg-gradient-to-r from-neon-purple to-accent-purple bg-clip-text text-transparent;
+  }
+  
+  /* Add line height to documentation paragraphs */
+  p {
+    @apply leading-relaxed;
+  }
+  
+  /* Specific documentation content styling */
+  .prose p {
+    @apply leading-loose;
+  }
+  
+  .prose ul li {
+    @apply leading-relaxed;
+  }
+  
+  .prose ol li {
+    @apply leading-relaxed;
   }
 }
 
@@ -36,7 +54,7 @@
 }
 
 @layer utilities {
-  
+  .text-gradient { @apply bg-gradient-to-r from-neon-purple to-accent-purple bg-clip-text text-transparent; }
   .backdrop-blur-custom { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
   .halo { background: radial-gradient(closest-side, rgba(192,132,252,0.4), rgba(76,29,149,0.25), rgba(10,15,31,0)); filter: blur(60px); mix-blend-mode: screen; }
 }

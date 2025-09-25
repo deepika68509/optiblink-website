@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Header from '@/components/Header'
-import Footer from '@/components/Footer' // Add this line
+import Footer from '@/components/Footer'
 
 
 type Tab = {
@@ -499,105 +499,101 @@ export default function Documentation() {
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="rounded-xl p-0">
             <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-              {/* Left nav */}
+              {/* Left nav - Now sticky with hidden scrollbar */}
               <nav className="pr-4">
-                <div className="flex flex-col gap-1">
-                  <div className="px-2 pt-3">
-                    {/* Sections 1-3 */}
-                    {tabs.filter(t => !t.parent && ['overview', 'installation', 'how-it-works'].includes(t.id)).map((t) => (
-                      <button
-                        key={t.id}
-                        onClick={() => setActiveTab(t.id)}
-                        className={`w-full text-left px-4 py-3 mb-1 rounded-md transition flex items-center justify-between ${
-                          activeTab === t.id
-                            ? 'border-l-4 border-neon-purple pl-3 text-neon-purple font-semibold'
-                            : 'text-white/80 hover:bg-white/3'
-                        }`}
-                      >
-                        <span className="text-sm font-medium">{t.title}</span>
-                      </button>
-                    ))}
+                <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-hide">
+                  <div className="flex flex-col gap-1">
+                    <div className="px-2 pt-3">
+                      {/* Sections 1-3 */}
+                      {tabs.filter(t => !t.parent && ['overview', 'installation', 'how-it-works'].includes(t.id)).map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => setActiveTab(t.id)}
+                          className={`w-full text-left px-4 py-3 mb-1 rounded-md transition flex items-center justify-between ${
+                            activeTab === t.id
+                              ? 'border-l-4 border-neon-purple pl-3 text-neon-purple font-semibold'
+                              : 'text-white/80 hover:bg-white/3'
+                          }`}
+                        >
+                          <span className="text-sm font-medium">{t.title}</span>
+                        </button>
+                      ))}
 
-                    {/* Section 4: Eye Blinks to Morse Code Conversion */}
-                    <div>
-                      <button
-                        onClick={() => toggleSection('eye-blinks')}
-                        className="w-full text-left px-4 py-3 mb-1 text-white/80 hover:bg-white/3 rounded-md transition flex items-center justify-between"
-                      >
-                        <span className="text-sm font-medium">4. Eye Blinks to Morse Code Conversion</span>
-                        <span className={`transform transition-transform ${expandedSections.includes('eye-blinks') ? 'rotate-90' : ''}`}>
-                          ›
-                        </span>
-                      </button>
-                      {expandedSections.includes('eye-blinks') && (
-                        <div className="ml-4 space-y-1">
-                          {tabs.filter(sub => sub.parent === 'eye-blinks').map(subTab => (
-                            <button
-                              key={subTab.id}
-                              onClick={() => setActiveTab(subTab.id)}
-                              className={`w-full text-left px-3 py-2 rounded-md text-sm transition ${
-                                activeTab === subTab.id
-                                  ? 'border-l-4 border-neon-purple pl-2 text-neon-purple font-semibold'
-                                  : 'text-white/70 hover:bg-white/2'
-                              }`}
-                            >
-                              {subTab.title}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                      {/* Section 4: Eye Blinks to Morse Code Conversion */}
+                      <div>
+                        <button
+                          onClick={() => toggleSection('eye-blinks')}
+                          className="w-full text-left px-4 py-3 mb-1 text-white/80 hover:bg-white/3 rounded-md transition flex items-center justify-between"
+                        >
+                          <span className="text-sm font-medium">4. Eye Blinks to Morse Code Conversion</span>
+                        </button>
+                        {expandedSections.includes('eye-blinks') && (
+                          <div className="ml-4 space-y-1">
+                            {tabs.filter(sub => sub.parent === 'eye-blinks').map(subTab => (
+                              <button
+                                key={subTab.id}
+                                onClick={() => setActiveTab(subTab.id)}
+                                className={`w-full text-left px-3 py-2 rounded-md text-sm transition ${
+                                  activeTab === subTab.id
+                                    ? 'border-l-4 border-neon-purple pl-2 text-neon-purple font-semibold'
+                                    : 'text-white/70 hover:bg-white/2'
+                                }`}
+                              >
+                                {subTab.title}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Section 5: Intelligent Text Input and Auto-Completion */}
+                      <div>
+                        <button
+                          onClick={() => toggleSection('autocomplete')}
+                          className="w-full text-left px-4 py-3 mb-1 text-white/80 hover:bg-white/3 rounded-md transition flex items-center justify-between"
+                        >
+                          <span className="text-sm font-medium">5. Intelligent Text Input and Auto-Completion</span>
+                        </button>
+                        {expandedSections.includes('autocomplete') && (
+                          <div className="ml-4 space-y-1">
+                            {tabs.filter(sub => sub.parent === 'autocomplete').map(subTab => (
+                              <button
+                                key={subTab.id}
+                                onClick={() => setActiveTab(subTab.id)}
+                                className={`w-full text-left px-3 py-2 rounded-md text-sm transition ${
+                                  activeTab === subTab.id
+                                    ? 'border-l-4 border-neon-purple pl-2 text-neon-purple font-semibold'
+                                    : 'text-white/70 hover:bg-white/2'
+                                }`}
+                              >
+                                {subTab.title}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Sections 6-8 */}
+                      {tabs.filter(t => !t.parent && ['special-commands', 'tts-audio', 'interface'].includes(t.id)).map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => setActiveTab(t.id)}
+                          className={`w-full text-left px-4 py-3 mb-1 rounded-md transition flex items-center justify-between ${
+                            activeTab === t.id
+                              ? 'border-l-4 border-neon-purple pl-3 text-neon-purple font-semibold'
+                              : 'text-white/80 hover:bg-white/3'
+                          }`}
+                        >
+                          <span className="text-sm font-medium">{t.title}</span>
+                        </button>
+                      ))}
                     </div>
-
-                    {/* Section 5: Intelligent Text Input and Auto-Completion */}
-                    <div>
-                      <button
-                        onClick={() => toggleSection('autocomplete')}
-                        className="w-full text-left px-4 py-3 mb-1 text-white/80 hover:bg-white/3 rounded-md transition flex items-center justify-between"
-                      >
-                        <span className="text-sm font-medium">5. Intelligent Text Input and Auto-Completion</span>
-                        <span className={`transform transition-transform ${expandedSections.includes('autocomplete') ? 'rotate-90' : ''}`}>
-                          ›
-                        </span>
-                      </button>
-                      {expandedSections.includes('autocomplete') && (
-                        <div className="ml-4 space-y-1">
-                          {tabs.filter(sub => sub.parent === 'autocomplete').map(subTab => (
-                            <button
-                              key={subTab.id}
-                              onClick={() => setActiveTab(subTab.id)}
-                              className={`w-full text-left px-3 py-2 rounded-md text-sm transition ${
-                                activeTab === subTab.id
-                                  ? 'border-l-4 border-neon-purple pl-2 text-neon-purple font-semibold'
-                                  : 'text-white/70 hover:bg-white/2'
-                              }`}
-                            >
-                              {subTab.title}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Sections 6-8 */}
-                    {tabs.filter(t => !t.parent && ['special-commands', 'tts-audio', 'interface'].includes(t.id)).map((t) => (
-                      <button
-                        key={t.id}
-                        onClick={() => setActiveTab(t.id)}
-                        className={`w-full text-left px-4 py-3 mb-1 rounded-md transition flex items-center justify-between ${
-                          activeTab === t.id
-                            ? 'border-l-4 border-neon-purple pl-3 text-neon-purple font-semibold'
-                            : 'text-white/80 hover:bg-white/3'
-                        }`}
-                      >
-                        <span className="text-sm font-medium">{t.title}</span>
-                      </button>
-                    ))}
                   </div>
                 </div>
               </nav>
 
-              {/* Right content */}
-              <div className="p-8">
+              {/* Right content - Scrollable */}
+              <div className="p-8 overflow-y-auto">
                 <motion.div
                   key={activeTab}
                   initial={{ opacity: 0, y: 6 }}
@@ -614,7 +610,7 @@ export default function Documentation() {
         </div>
       </section>
 
-      <Footer /> {/* Add this line */}
+      <Footer />
     </main>
   )
 }

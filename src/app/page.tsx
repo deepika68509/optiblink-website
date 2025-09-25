@@ -143,14 +143,14 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
         >
-          {/* Main Title without glow */}
+          {/* Main Title - Changed to white */}
           <motion.h1
-            className="text-6xl md:text-8xl font-bold mb-6"
+            className="text-6xl md:text-8xl font-bold mb-6 text-white"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: 'easeOut', delay: 0.1 }}
           >
-            <span className="text-gradient">OptiBlink</span>
+            OptiBlink
           </motion.h1>
 
           {/* Subtitle */}
@@ -438,9 +438,11 @@ export default function Home() {
             <p className="text-white/70 mb-6 text-lg">
               Still have questions? We're here to help!
             </p>
-            <button className="btn-primary">
-              Contact Support
-            </button>
+            <Link href="/contact">
+              <button className="btn-primary">
+                Contact Support
+              </button>
+            </Link>
           </div>
         </motion.div>
       </section>

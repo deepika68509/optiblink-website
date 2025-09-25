@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Header from '@/components/Header'
+import Footer from '@/components/Footer' // Add this line
+
 
 type Tab = {
   id: string
@@ -611,6 +613,8 @@ export default function Documentation() {
           </div>
         </div>
       </section>
+
+      <Footer /> {/* Add this line */}
     </main>
   )
 }

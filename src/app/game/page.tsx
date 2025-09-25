@@ -1,4 +1,9 @@
+'use client'
+
 import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import { motion } from 'framer-motion'
+import { useState } from 'react'
 
 export default function Game() {
   return (
@@ -27,6 +32,8 @@ export default function Game() {
           </div>
         </div>
       </section>
+
+      <Footer />
     </main>
   )
 }

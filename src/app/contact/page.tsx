@@ -1,6 +1,7 @@
 'use client'
 
 import Header from '@/components/Header'
+import Footer from '@/components/Footer' // Add this line
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 
@@ -160,6 +161,8 @@ export default function Contact() {
           </div>
         </div>
       )}
+
+      <Footer /> {/* Add this line */}
     </main>
   )
 }

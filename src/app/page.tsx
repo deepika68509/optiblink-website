@@ -9,9 +9,9 @@ import Footer from '@/components/Footer'
 // Typewriter Animation Component
 const TypewriterSequence = () => {
   const phrases = [
-    ". - . . - - . - .",
+    ".-..--.-.",
     "Blink your eyes",
-    "- - . - - . - - .",
+    "--.--.--.",
     "Dots and dashes detected",
     "..-.-..--.",
     "Morse code converted to text",
@@ -68,7 +68,7 @@ const TypewriterSequence = () => {
 
   return (
     <div className="h-20 flex items-center justify-center">
-      <p className="text-2xl font-semibold italic text-neon-purple/90 min-h-[1.2em] flex items-center" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+      <p className="font-bold italic text-neon-purple/90 min-h-[1.2em] flex items-center" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '20px' }}>
         {currentText}
       </p>
     </div>

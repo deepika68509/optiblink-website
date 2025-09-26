@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -18,15 +19,21 @@ export default function Header() {
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       isScrolled 
-        ? 'bg-primary-dark/80 backdrop-blur-custom border-b border-neon-purple/20' 
+        ? 'bg-primary-dark/80 backdrop-blur-custom' 
         : 'bg-transparent'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20 py-4">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-neon-purple to-accent-purple rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">OB</span>
+            <div className="w-12 h-12 flex items-center justify-center">
+              <Image
+                src="/assets/icons/optiblink-logo.svg"
+                alt="OptiBlink Logo"
+                width={48}
+                height={48}
+                className="w-full h-full"
+              />
             </div>
             <span className="text-xl font-bold text-white">OptiBlink</span>
           </Link>

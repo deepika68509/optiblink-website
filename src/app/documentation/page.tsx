@@ -189,8 +189,8 @@ export default function Documentation() {
 
           <p className="text-white/80 mb-4">Here is the complete Morse code mapping recognized by the system:</p>
 
-          <div className="overflow-x-auto">
-            <table className="w-auto border border-white/20 rounded-lg text-sm">
+          <div className="overflow-x-auto max-w-[75%]">
+            <table className="w-full border border-white/20 rounded-lg text-sm">
               <thead>
                 <tr className="border-b border-white/20">
                   <th className="text-left p-3 text-neon-purple font-semibold border-r border-white/10">Morse Code</th>
@@ -285,52 +285,8 @@ export default function Documentation() {
       )
     },
     {
-      id: 'dynamic-suggestions',
-      title: '5.2 Dynamic Suggestion Generation',
-      parent: 'autocomplete',
-      content: (
-        <div className="space-y-3 text-left">
-          <h2 className="text-2xl font-semibold">Dynamic Suggestion Generation</h2>
-          
-          <p className="text-white/80">
-            As you type letters using eye blinks, the system actively monitors the current word you're forming to provide real-time word suggestions. When you start a new word, the system quickly checks its word libraries to offer the most relevant completions.
-          </p>
-
-          <p className="text-white/80">
-            It first looks for matches in the custom CSV word list, giving priority to your personalized vocabulary. If fewer than three suggestions are found, it then adds words from the broader English word library to make sure you always have helpful options. This ensures that your own preferred words appear first, while still keeping the suggestions comprehensive.
-          </p>
-
-          <p className="text-white/80">
-            All suggested words are displayed clearly on the screen along with their corresponding Morse codes, making it easy to see and select them. The suggestions are designed to stand out from other interface elements, ensuring that they are easy to identify and use—even for users with visual challenges or difficulty focusing on complex layouts.
-          </p>
-        </div>
-      )
-    },
-    {
-      id: 'personalized-suggestions',
-      title: '5.3 Personalized Suggestions via Usage Data',
-      parent: 'autocomplete',
-      content: (
-        <div className="space-y-3 text-left">
-          <h2 className="text-2xl font-semibold">Personalized Suggestions via Usage Data</h2>
-          
-          <p className="text-white/80">
-            The system gets smarter the more you use it by learning which words you use most often, creating a highly personalized typing experience.
-          </p>
-
-          <p className="text-white/80">
-            Every time you complete a word—whether by selecting it from the suggestions or sending it—the system records it. It keeps track of how frequently each word is used, building a profile of your personal communication habits. This data is saved and loaded whenever you start the system, so it remembers your preferences over time.
-          </p>
-
-          <p className="text-white/80">
-            Words that you use most often are given higher priority in the suggestion list, appearing first even if other words share the same letters. This means the system gradually learns your most common words and phrases, reducing the number of blinks needed to type them and making hands-free communication faster and more efficient.
-          </p>
-        </div>
-      )
-    },
-    {
       id: 'selecting-suggestions',
-      title: '5.4 Selecting Suggestions',
+      title: '5.2 Selecting Suggestions',
       parent: 'autocomplete',
       content: (
         <div className="space-y-3 text-left">
@@ -340,13 +296,36 @@ export default function Documentation() {
             To make typing faster, users can choose one of the top three suggested words using simple, dedicated Morse code sequences. This allows words to be completed quickly with minimal blinks:
           </p>
 
-          <ul className="list-disc ml-5 text-white/70 space-y-2">
-            <li><strong>SELECT1 (.---.)</strong> – Picks the first suggestion. This pattern is easy to distinguish from regular blinks and designed for users with limited blink control.</li>
-            <li><strong>SELECT2 (..--.)</strong> – Picks the second suggestion. The sequence is chosen to avoid accidental selections during normal blinking.</li>
-            <li><strong>SELECT3 (.--..)</strong> – Picks the third suggestion.</li>
-          </ul>
+          <div className="overflow-x-auto">
+            <table className="w-3/4 border border-white/20 rounded-lg text-sm">
+              <thead>
+                <tr className="border-b border-white/20">
+                  <th className="text-left p-3 text-neon-purple font-semibold border-r border-white/10">Command</th>
+                  <th className="text-left p-3 text-neon-purple font-semibold border-r border-white/10">Morse Code</th>
+                  <th className="text-left p-3 text-neon-purple font-semibold">Description</th>
+                </tr>
+              </thead>
+              <tbody className="text-white/80">
+                <tr className="border-b border-white/5">
+                  <td className="p-3 font-bold border-r border-white/10">SELECT1</td>
+                  <td className="p-3 font-mono border-r border-white/10">.---.</td>
+                  <td className="p-3">Picks the first suggestion.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="p-3 font-bold border-r border-white/10">SELECT2</td>
+                  <td className="p-3 font-mono border-r border-white/10">..--.</td>
+                  <td className="p-3">Picks the second suggestion.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="p-3 font-bold border-r border-white/10">SELECT3</td>
+                  <td className="p-3 font-mono border-r border-white/10">.--.</td>
+                  <td className="p-3">Picks the third suggestion.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          <p className="text-white/80">
+          <p className="text-white/80 mt-4">
             When a suggestion is selected, the partial word you've been forming is automatically replaced with the full word, a space is added, and the word is sent to the active application—just as if it had been typed manually. This ensures the system works seamlessly with any text field or application without extra setup, making hands-free communication smooth and effortless.
           </p>
         </div>
@@ -364,18 +343,61 @@ export default function Documentation() {
             Beyond basic text input, the system offers a variety of special commands that let you control messages and the system itself—all using simple Morse code sequences. These commands make hands-free communication more flexible and efficient:
           </p>
 
-          <ul className="list-disc ml-5 text-white/70 space-y-2">
-            <li><strong>ENTER (.-.-):</strong> Sends the current message to the active application, just like pressing the Enter key. The message is cleared from the input buffer, and if Text-to-Speech is enabled, it's spoken aloud.</li>
-            <li><strong>SPACE (..--):</strong> Adds a space to your message, clearing the Morse character buffer so you can start a new word.</li>
-            <li><strong>BACKSPACE (-):</strong> Deletes the last character, both from the message and the active application, helping you correct mistakes.</li>
-            <li><strong>CAPS (.--.-):</strong> Toggles uppercase letters on or off. When active, all letters typed via blinks will appear in uppercase.</li>
-            <li><strong>CLEAR (.._..):</strong> Clears your entire message and erases text in the active application so you can start fresh.</li>
-            <li><strong>SOS (......):</strong> Sends an emergency "SOS" message and, if Text-to-Speech is enabled, announces it aloud.</li>
-            <li><strong>SLEEP:</strong> Pauses blink detection to prevent accidental inputs. This mode can activate automatically after a few seconds of eye closure or manually via a blink pattern. You can wake the system using the same pattern or Morse code.</li>
-            <li><strong>TTS_TOGGLE (-.-.-):</strong> Turns the Text-to-Speech feature on or off. If turned on, any existing message in the buffer is spoken aloud immediately.</li>
-          </ul>
+          <div className="overflow-x-auto">
+            <table className="w-full border border-white/20 rounded-lg text-sm">
+              <thead>
+                <tr className="border-b border-white/20">
+                  <th className="text-left p-3 text-neon-purple font-semibold border-r border-white/10">Command</th>
+                  <th className="text-left p-3 text-neon-purple font-semibold border-r border-white/10">Morse Code</th>
+                  <th className="text-left p-3 text-neon-purple font-semibold">Description</th>
+                </tr>
+              </thead>
+              <tbody className="text-white/80">
+                <tr className="border-b border-white/5">
+                  <td className="p-3 font-bold border-r border-white/10">ENTER</td>
+                  <td className="p-3 font-mono border-r border-white/10">.-.-</td>
+                  <td className="p-3">Sends the current message to the active application, just like pressing the Enter key. The message is cleared from the input buffer, and if Text-to-Speech is enabled, it's spoken aloud.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="p-3 font-bold border-r border-white/10">SPACE</td>
+                  <td className="p-3 font-mono border-r border-white/10">..-</td>
+                  <td className="p-3">Adds a space to your message, clearing the Morse character buffer so you can start a new word.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="p-3 font-bold border-r border-white/10">BACKSPACE</td>
+                  <td className="p-3 font-mono border-r border-white/10">--</td>
+                  <td className="p-3">Deletes the last character, both from the message and the active application, helping you correct mistakes.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="p-3 font-bold border-r border-white/10">CAPS</td>
+                  <td className="p-3 font-mono border-r border-white/10">.--.-</td>
+                  <td className="p-3">Toggles uppercase letters on or off. When active, all letters typed via blinks will appear in uppercase.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="p-3 font-bold border-r border-white/10">CLEAR</td>
+                  <td className="p-3 font-mono border-r border-white/10">.._..</td>
+                  <td className="p-3">Clears your entire message and erases text in the active application so you can start fresh.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="p-3 font-bold border-r border-white/10">SOS</td>
+                  <td className="p-3 font-mono border-r border-white/10">......</td>
+                  <td className="p-3">Sends an emergency "SOS" message and, if Text-to-Speech is enabled, announces it aloud.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="p-3 font-bold border-r border-white/10">SLEEP</td>
+                  <td className="p-3 font-mono border-r border-white/10">-</td>
+                  <td className="p-3">Pauses blink detection to prevent accidental inputs. This mode can activate automatically after a few seconds of eye closure or manually via a blink pattern. You can wake the system using the same pattern or Morse code.</td>
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="p-3 font-bold border-r border-white/10">TTS_TOGGLE</td>
+                  <td className="p-3 font-mono border-r border-white/10">-.-.-</td>
+                  <td className="p-3">Turns the Text-to-Speech feature on or off. If turned on, any existing message in the buffer is spoken aloud immediately.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          <p className="text-white/80">
+          <p className="text-white/80 mt-4">
             These commands let users interact smoothly and efficiently, controlling both text input and system behavior without needing a keyboard or mouse.
           </p>
         </div>

@@ -9,20 +9,20 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#0A0F1F',
-          dark: '#0A0F1F',
+          DEFAULT: '#0D0D16',
+          dark: '#0D0D16',
         },
         accent: {
-          DEFAULT: '#42106A', // New purple shade
-          purple: '#42106A',
+          DEFAULT: '#621665', // New purple shade
+          purple: '#621665',
         },
         text: {
           DEFAULT: '#FDFCF9',
           offwhite: '#FDFCF9',
         },
         neon: {
-          DEFAULT: '#5714f2', // Lighter purple for neon/glow
-          purple: '#8A00F0',
+          DEFAULT: '#740078', // Lighter purple for neon/glow
+          purple: '#a400ab',
         },
         neutral: {
           dark: '#1A1A1A',

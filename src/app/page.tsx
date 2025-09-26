@@ -6,6 +6,68 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
+// Typewriter Animation Component
+const TypewriterSequence = () => {
+  const phrases = [
+    "Blink your eyes",
+    "Dots and dashes detected", 
+    "Morse code converted to text",
+    "Smart suggestions appear",
+    "Select words with blinks",
+    "Hear it with text-to-speech",
+    "Send messages hands-free",
+    "Trigger SOS in emergencies"
+  ]
+
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0)
+  const [currentText, setCurrentText] = useState('')
+  const [isTyping, setIsTyping] = useState(true)
+
+  useEffect(() => {
+    const currentPhrase = phrases[currentPhraseIndex]
+    
+    if (isTyping) {
+      // Typing animation
+      if (currentText.length < currentPhrase.length) {
+        const timeout = setTimeout(() => {
+          setCurrentText(currentPhrase.slice(0, currentText.length + 1))
+        }, 100) // Typing speed
+        return () => clearTimeout(timeout)
+      } else {
+        // Pause after typing complete
+        const timeout = setTimeout(() => {
+          setIsTyping(false)
+        }, 2000) // Pause duration
+        return () => clearTimeout(timeout)
+      }
+    } else {
+      // Deleting animation
+      if (currentText.length > 0) {
+        const timeout = setTimeout(() => {
+          setCurrentText(currentText.slice(0, -1))
+        }, 50) // Deleting speed
+        return () => clearTimeout(timeout)
+      } else {
+        // Move to next phrase
+        const timeout = setTimeout(() => {
+          setCurrentPhraseIndex((prevIndex) => (prevIndex + 1) % phrases.length)
+          setIsTyping(true)
+        }, 500) // Pause before next phrase
+        return () => clearTimeout(timeout)
+      }
+    }
+  }, [currentText, isTyping, currentPhraseIndex, phrases])
+
+  return (
+    <div className="h-16 flex items-center justify-center">
+      <p className="text-2xl font-semibold italic text-neon-purple/90 min-h-[1.2em] flex items-center">
+        {currentText}
+        <span className="ml-1 animate-pulse text-neon-purple">|</span>
+      </p>
+    </div>
+  )
+}
+
 export default function Home() {
   const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null)
 
@@ -158,10 +220,20 @@ export default function Home() {
             className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: 'easeOut', delay: 0.25 }}
+            transition={{ duration: 0.7, ease: 'easeOut', delay: 0.2 }}
           >
             Eye Blink Morse Code Communication System
           </motion.p>
+
+          {/* Typewriter Animation - Now positioned below the subtitle */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: 'easeOut', delay: 0.25 }}
+            className="mb-8"
+          >
+            <TypewriterSequence />
+          </motion.div>
 
           {/* Description */}
           <motion.p

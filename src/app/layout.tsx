@@ -1,10 +1,17 @@
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import './globals.css'
 
+const inter = Inter({ subsets: ['latin'] })
+
 export const metadata: Metadata = {
-  title: 'OptiBlink - Eye Blink Morse Code Communication System',
-  description: 'Revolutionary eye blink detection system that converts blinks to Morse code for seamless communication.',
-  keywords: 'eye blink, morse code, communication, accessibility, technology',
+  title: 'OptiBlink - Eye Blink Morse Code Communication',
+  description: 'Revolutionary eye blink detection technology for seamless, accessible communication through Morse code.',
+  icons: {
+    icon: '/assets/icons/optiblink-logo.svg',
+    shortcut: '/assets/icons/optiblink-logo.svg',
+    apple: '/assets/icons/optiblink-logo.svg',
+  },
 }
 
 export default function RootLayout({
@@ -14,9 +21,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">
-        {children}
-      </body>
+      <head>
+        <link rel="icon" href="/assets/icons/optiblink-logo.svg" type="image/svg+xml" />
+        <link rel="shortcut icon" href="/assets/icons/optiblink-logo.svg" />
+        <link rel="apple-touch-icon" href="/assets/icons/optiblink-logo.svg" />
+      </head>
+      <body className={inter.className}>{children}</body>
     </html>
   )
 }

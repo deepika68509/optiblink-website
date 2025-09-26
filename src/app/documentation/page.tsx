@@ -96,8 +96,6 @@ export default function Documentation() {
             <li>Browser extension for web integration</li>
             <li>Python package for prototype / research builds</li>
           </ul>
-
-          <p className="text-sm text-white/60">Dummy note: replace with platform-specific steps, checksum links and download buttons.</p>
         </div>
       )
     },
@@ -135,8 +133,6 @@ export default function Documentation() {
               </div>
             </div>
           </div>
-
-          <p className="text-sm text-white/60">Tip: embed demo video and interactive examples here for clarity.</p>
         </div>
       )
     },

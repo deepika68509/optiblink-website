@@ -27,18 +27,66 @@ export default function Documentation() {
 
   // Key features as cards (used by the Overview tab)
   const keyFeatures = [
-    { icon: '👁️', title: 'Eye Blink Detection', description: 'Utilizes MediaPipe Face Mesh to accurately track eye movements and detect blinks.' },
-    { icon: '📡', title: 'Morse Code Input', description: 'Differentiates between short blinks (dots) and long blinks (dashes) to form Morse code characters.' },
-    { icon: '⚡', title: 'Real-time Decoding', description: 'Converts Morse code inputs into letters, numbers, and special characters instantly.' },
-    { icon: '🤖', title: 'Intelligent Auto-Completion', description: 'Autocomplete suggests words based on typed prefixes from a CSV word list and the NLTK corpus.' },
-    { icon: '📈', title: 'Personalized Suggestions', description: 'Learns from user word usage and prioritizes frequently used words in suggestions.' },
-    { icon: '🔧', title: 'Special Commands', description: 'Supports Enter, Space, Backspace, Caps, SOS, TTS toggle and other control sequences.' },
-    { icon: '🔢', title: 'Word Selection via Blinks', description: 'Select suggested words using dedicated blink patterns (SELECT1, SELECT2, SELECT3).' },
-    { icon: '🔊', title: 'TTS Integration', description: 'Speaks typed messages for auditory feedback; can be toggled on/off.' },
-    { icon: '🚨', title: 'Emergency SOS', description: 'Trigger SOS to call and send WhatsApp message to a saved contact.' },
-    { icon: '😴', title: 'Sleep Mode', description: 'Pauses inputs when eyes are closed for 5s; same action wakes the system.' },
-    { icon: '🖥️', title: 'Interactive UI', description: 'Shows morse buffer, suggestions, CAPS/TTS state, blink visuals and a morse keyboard image.' },
-    { icon: '⚙️', title: 'Self-Calibration', description: 'Automatically calibrates blink thresholds at startup for different users and lighting.' }
+    { 
+      icon: '/assets/icons/Eye Blink Detection.svg', 
+      title: 'Eye Blink Detection', 
+      description: 'Utilizes MediaPipe Face Mesh to accurately track eye movements and detect blinks.' 
+    },
+    { 
+      icon: '/assets/icons/morse-code-input.svg', 
+      title: 'Morse Code Input', 
+      description: 'Differentiates between short blinks (dots) and long blinks (dashes) to form Morse code characters.' 
+    },
+    { 
+      icon: '/assets/icons/real-time.svg', 
+      title: 'Real-time Decoding', 
+      description: 'Converts Morse code inputs into letters, numbers, and special characters instantly.' 
+    },
+    { 
+      icon: '/assets/icons/Auto-completion.svg', 
+      title: 'Intelligent Auto-Completion', 
+      description: 'Autocomplete suggests words based on typed prefixes from a CSV word list and the NLTK corpus.' 
+    },
+    { 
+      icon: '/assets/icons/personalized-suggestions.svg', 
+      title: 'Personalized Suggestions', 
+      description: 'Learns from user word usage and prioritizes frequently used words in suggestions.' 
+    },
+    { 
+      icon: '/assets/icons/Special Commands.svg', 
+      title: 'Special Commands', 
+      description: 'Supports Enter, Space, Backspace, Caps, SOS, TTS toggle and other control sequences.' 
+    },
+    { 
+      icon: '/assets/icons/word-selection.svg', 
+      title: 'Word Selection via Blinks', 
+      description: 'Select suggested words using dedicated blink patterns (SELECT1, SELECT2, SELECT3).' 
+    },
+    { 
+      icon: '/assets/icons/Text-to-Speech.svg', 
+      title: 'TTS Integration', 
+      description: 'Speaks typed messages for auditory feedback; can be toggled on/off.' 
+    },
+    { 
+      icon: '/assets/icons/emergency.svg', 
+      title: 'Emergency SOS', 
+      description: 'Trigger SOS to call and send WhatsApp message to a saved contact.' 
+    },
+    { 
+      icon: '/assets/icons/Sleep Mode.svg', 
+      title: 'Sleep Mode', 
+      description: 'Pauses inputs when eyes are closed for 5s; same action wakes the system.' 
+    },
+    { 
+      icon: '/assets/icons/ui.svg', 
+      title: 'Interactive UI', 
+      description: 'Shows morse buffer, suggestions, CAPS/TTS state, blink visuals and a morse keyboard image.' 
+    },
+    { 
+      icon: '/assets/icons/Self-Calibration.svg', 
+      title: 'Self-Calibration', 
+      description: 'Automatically calibrates blink thresholds at startup for different users and lighting.' 
+    }
   ]
 
   const tabs: Tab[] = [
@@ -66,8 +114,15 @@ export default function Documentation() {
                 className="card group cursor-pointer"
               >
                 <div className="text-center">
-                  <div className="text-3xl mb-3">
-                    {f.icon}
+                  <div className="w-12 h-12 mx-auto mb-4 flex items-center justify-center relative">
+                    {/* Gradient background for icon */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-neon-purple to-accent-purple rounded-full p-3 group-hover:scale-110 transition-transform duration-300">
+                      <img 
+                        src={f.icon} 
+                        alt={f.title}
+                        className="w-full h-full object-contain filter brightness-0 invert"
+                      />
+                    </div>
                   </div>
                   <h5 className="text-lg font-semibold text-white mb-2">
                     {f.title}
@@ -142,20 +197,41 @@ export default function Documentation() {
       title: '4.1 Eye Blink Detection',
       parent: 'eye-blinks',
       content: (
-        <div className="space-y-3 text-left">
+        <div className="space-y-4 text-left">
           <h2 className="text-2xl font-semibold">Eye Blink Detection</h2>
 
           <p className="text-white/80">
-            The system uses advanced facial tracking technology to carefully monitor your eyes and understand when you blink. It maps many points on your face—over 400 landmarks—with special attention to the eyes, so it can accurately follow their movements. For each eye, the system measures two important aspects: how open or closed the eye is, and the overall area of the eye. These measurements help the system determine the exact state of your eyes at any moment.
+            The Eye Blink Detection feature allows the system to understand your blinks, enabling hands-free communication.
           </p>
 
-          <p className="text-white/80">
-            When you start using the system, it performs a quick calibration process. Over about 30 frames (a few seconds), it observes your eyes to learn what your normal open-eye measurements look like. This establishes a personal baseline, allowing the system to adapt to your unique features, as well as different lighting conditions or environments.
-          </p>
+          <h3 className="text-xl font-semibold mt-6 mb-3">How It Works</h3>
+          
+          <ul className="list-disc ml-5 text-white/80 space-y-2">
+            <li>The system carefully monitors your eyes to detect when you blink.</li>
+            <li>It tracks your eye movements and measures how open or closed your eyes are.</li>
+            <li>This helps the system know your eye state at any moment.</li>
+          </ul>
 
-          <p className="text-white/80">
-            Once calibrated, the system can detect a blink whenever your eyes close noticeably below this baseline. By averaging measurements from both eyes and smoothing out small variations, the system ensures it only responds to intentional blinks and not to natural or accidental eye movements. This makes the blink recognition highly accurate and reliable, forming the foundation for hands-free communication.
-          </p>
+          <h3 className="text-xl font-semibold mt-6 mb-3">Getting Started</h3>
+
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-lg font-semibold mb-2 text-neon-purple">Calibration:</h4>
+              <ul className="list-disc ml-5 text-white/80 space-y-1">
+                <li>When you first use the system, it performs a quick calibration (a few seconds).</li>
+                <li>During this, it observes your normal eye state to create a personal baseline.</li>
+                <li>This allows the system to adapt to your unique eyes and different lighting conditions.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-lg font-semibold mb-2 text-neon-purple">Blink Detection:</h4>
+              <ul className="list-disc ml-5 text-white/80 space-y-1">
+                <li>After calibration, the system detects blinks when your eyes close noticeably below your baseline.</li>
+                <li>It averages both eyes and filters out accidental movements, ensuring only intentional blinks are recognized.</li>
+              </ul>
+            </div>
+          </div>
         </div>
       )
     },
@@ -255,28 +331,38 @@ export default function Documentation() {
     // Auto-completion subsections
     {
       id: 'auto-completion-sources',
-      title: '5.1 Word Auto-Completion and Data Sources',
+      title: '5.1 Intelligent Text Input and Auto-Completion',
       parent: 'autocomplete',
       content: (
-        <div className="space-y-3 text-left">
+        <div className="space-y-4 text-left">
           <h2 className="text-2xl font-semibold">Word Auto-Completion and Data Sources</h2>
           
           <p className="text-white/80">
-            The system includes a smart text input feature that makes typing with eye blinks faster, easier, and more accurate. It can predict and suggest words as you blink, helping users communicate efficiently without having to blink every single letter.
+            OptiBlink helps you type faster by suggesting words as you blink.
           </p>
 
-          <p className="text-white/80">
-            At the heart of this feature is an advanced auto-completion system. It uses a highly efficient "tree-like" structure that stores words in a way that makes it quick to find all words starting with the letters you've already blinked. To cover a wide range of words, the system maintains two separate word libraries: one for custom words and another for a general English vocabulary. This ensures that you always have relevant suggestions while keeping the system fast and responsive.
-          </p>
-
-          <ul className="list-disc ml-5 text-white/70 space-y-2">
-            <li><strong>Custom Word List:</strong> The system can load words from a CSV file, allowing users or developers to include specific words relevant to their needs—like medical terms, technical jargon, or personal expressions. This makes communication highly personalized.</li>
-            <li><strong>Fallback English Words:</strong> To make sure suggestions are always available, the system also uses a comprehensive list of English words from a standard language library. All words are treated in lowercase to match inputs accurately, regardless of how they're typed.</li>
+          <h3 className="text-xl font-semibold mt-6 mb-3">How Word Suggestions Work:</h3>
+          
+          <ul className="list-disc ml-5 text-white/80 space-y-2">
+            <li>The system shows word suggestions as you type, helping you complete words without typing every letter.</li>
+            <li>Suggestions come from your personal word list and a general list of common words.</li>
           </ul>
 
-          <p className="text-white/80">
-            Together, these features allow the system to predict words intelligently, reduce the number of blinks needed to type, and make hands-free communication smoother and more natural.
-          </p>
+          <h3 className="text-xl font-semibold mt-6 mb-3">Real-Time Assistance:</h3>
+
+          <ul className="list-disc ml-5 text-white/80 space-y-2">
+            <li>Up to three suggestions appear at a time.</li>
+            <li>Your custom words are prioritized.</li>
+            <li>If fewer than three custom words match, general words fill the list.</li>
+            <li>Suggestions are displayed clearly with selection codes for easy choosing.</li>
+          </ul>
+
+          <h3 className="text-xl font-semibold mt-6 mb-3">Personalized Suggestions:</h3>
+
+          <ul className="list-disc ml-5 text-white/80 space-y-2">
+            <li>The system learns the words you use most and shows them first.</li>
+            <li>Frequent words require fewer blinks, speeding up your communication over time.</li>
+          </ul>
         </div>
       )
     },
@@ -403,24 +489,64 @@ export default function Documentation() {
       id: 'tts-audio',
       title: '7. Auditory Feedback (Text-to-Speech - TTS)',
       content: (
-        <div className="space-y-3 text-left">
+        <div className="space-y-4 text-left">
           <h2 className="text-2xl font-semibold">Auditory Feedback (Text-to-Speech - TTS)</h2>
 
           <p className="text-white/80">
-            To make communication more accessible, especially for users who may not always be looking at the screen or those with visual impairments, the system includes a powerful Text-to-Speech (TTS) feature. This converts your typed messages into natural-sounding speech, helping users receive immediate auditory feedback and creating a more inclusive experience.
+            The Text-to-Speech (TTS) feature reads your typed messages out loud, making communication easier and more inclusive.
           </p>
 
-          <p className="text-white/80">
-            The system uses Google Text-to-Speech (gTTS) technology to produce clear, natural-sounding audio across multiple languages and accents. The audio is played through pygame, and the entire process runs in a separate background thread. This ensures the system continues to respond to your blinks without any interruptions while the message is being spoken.
-          </p>
+          <h3 className="text-xl font-semibold mt-6 mb-3">Benefits of TTS</h3>
+          
+          <ul className="list-disc ml-5 text-white/80 space-y-2">
+            <li><strong>Instant Audio Feedback:</strong> Hear your messages immediately as they are typed.</li>
+            <li><strong>Accessibility:</strong> Perfect for users with visual impairments or those who cannot always look at the screen.</li>
+            <li><strong>Inclusive Communication:</strong> Helps ensure everyone can follow along, even without looking.</li>
+          </ul>
 
-          <p className="text-white/80">
-            Audio is temporarily saved as an MP3 file and automatically deleted after playback to manage system resources efficiently. While speaking, a visual indicator shows "Speaking: [message]" on the screen, so you can see exactly what is being read aloud.
-          </p>
+          <h3 className="text-xl font-semibold mt-6 mb-3">How to Use TTS</h3>
 
-          <p className="text-white/80">
-            The TTS feature can be turned on or off at any time using the dedicated TTS_TOGGLE Morse code command (-.-.-.),  letting you control when auditory feedback is active. Users can also customize settings such as speech rate, volume, and voice type, and these preferences are remembered for future sessions, making the experience both personal and convenient.
-          </p>
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-lg font-semibold mb-2 text-neon-purple">Enable or Disable TTS:</h4>
+              
+              <div className="overflow-x-auto ml-5">
+                <table className="w-3/4 border border-white/20 rounded-lg text-sm">
+                  <thead>
+                    <tr className="border-b border-white/20">
+                      <th className="text-left p-3 text-neon-purple font-semibold border-r border-white/10">Command</th>
+                      <th className="text-left p-3 text-neon-purple font-semibold border-r border-white/10">Morse Code</th>
+                      <th className="text-left p-3 text-neon-purple font-semibold">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-white/80">
+                    <tr className="border-b border-white/5">
+                      <td className="p-3 font-bold border-r border-white/10">TTS_TOGGLE</td>
+                      <td className="p-3 font-mono border-r border-white/10">-.-.-</td>
+                      <td className="p-3">Turn TTS on or off anytime during use</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-lg font-semibold mb-2 text-neon-purple">See What's Being Read:</h4>
+              <p className="text-white/80 ml-5 mb-2">
+                While a message is being spoken, the system displays:
+              </p>
+              <div className="bg-neutral-dark/50 border border-white/10 rounded-lg p-3 ml-5 text-white/80 font-mono text-sm">
+                "Speaking: [your message]"
+              </div>
+            </div>
+          </div>
+
+          <h3 className="text-xl font-semibold mt-6 mb-3">How It Works for You</h3>
+
+          <ul className="list-disc ml-5 text-white/80 space-y-2">
+            <li>Once TTS is enabled, messages are automatically read aloud—no extra steps needed.</li>
+            <li>You can continue using the system normally while listening, with no interruptions.</li>
+          </ul>
         </div>
       )
     },
@@ -497,11 +623,17 @@ export default function Documentation() {
 
           <h3 className="text-xl font-semibold mt-6 mb-3">4. System Requirements</h3>
           <p className="text-white/80">To ensure Emergency SOS works smoothly, your system must meet the following requirements:</p>
-          <ul className="list-disc ml-5 text-white/70 space-y-1">
+          
+          <ul className="list-disc ml-5 text-white/70 space-y-2">
             <li><strong>GPS / Location Services:</strong> Enabled for location sharing.</li>
             <li><strong>WhatsApp:</strong> Installed and linked (or WhatsApp Web connected via QR scan).</li>
-            <li><strong>Phone Link:</strong> Installed, set up, and connected to your phone via Bluetooth.</li>
-            <li><strong>TTS (Text-to-Speech):</strong> Enabled to announce the emergency message during the call.</li>
+            <li>
+              <strong>Phone Link & Bluetooth:</strong>
+              <ul className="list-disc ml-5 mt-1 space-y-1">
+                <li>Phone Link must be installed, set up, and connected to your phone.</li>
+                <li>Bluetooth must be turned on on both your mobile and laptop, and the devices must be connected.</li>
+              </ul>
+            </li>
             <li><strong>Internet Connection:</strong> Required for WhatsApp messaging and TTS services.</li>
           </ul>
         </div>

@@ -1,33 +1,46 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-neutral-darker border-t border-neon-purple/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
-          {/* Company Info */}
-          <div className="md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-neon-purple to-accent-purple rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">OB</span>
+    <footer className="bg-neutral-darker border-t border-neon-purple/20 relative overflow-hidden">
+      {/* Subtle background glow */}
+      <div className="absolute inset-0 bg-gradient-to-t from-neon-purple/5 to-transparent pointer-events-none"></div>
+      
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+        <div className="text-center">
+          {/* Company Info - Centered */}
+          <div className="mb-8">
+            <div className="flex items-center justify-center space-x-3 mb-4">
+              <div className="w-10 h-10 flex items-center justify-center">
+                <Image
+                  src="/assets/icons/optiblink-logo.svg"
+                  alt="OptiBlink Logo"
+                  width={40}
+                  height={40}
+                  className="w-full h-full"
+                />
               </div>
-              <span className="text-xl font-bold text-white">OptiBlink</span>
+              <span className="text-2xl font-bold text-white">OptiBlink</span>
             </div>
-            <p className="text-white/70 mb-4 max-w-md">
-              Revolutionizing communication through innovative eye blink technology.
-              Making the world more accessible, one blink at a time.
+            
+            <p className="text-white/80 mb-6 max-w-lg mx-auto text-lg leading-relaxed">
+              Revolutionizing communication through innovative eye blink technology. Making the world more accessible, one blink at a time.
+
             </p>
-            <div className="flex space-x-4">
+            
+            {/* Social Icons - Enhanced */}
+            <div className="flex justify-center space-x-6 mb-6">
               {/* GitHub Icon */}
               <a
                 href="https://github.com/ameen90913/OptiBlink"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-white/10 hover:bg-neon-purple/20 rounded-full flex items-center justify-center text-white hover:text-neon-purple transition-all duration-300 border border-white/20 hover:border-neon-purple/50"
+                className="group w-12 h-12 bg-gradient-to-br from-white/10 to-white/5 hover:from-neon-purple/20 hover:to-neon-purple/10 rounded-xl flex items-center justify-center text-white hover:text-neon-purple transition-all duration-300 border border-white/20 hover:border-neon-purple/50 hover:shadow-lg hover:shadow-neon-purple/25 hover:-translate-y-1"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-6 h-6 transition-transform group-hover:scale-110"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -40,10 +53,10 @@ const Footer: React.FC = () => {
                 href="https://www.youtube.com/@Optiblink-2025"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-white/10 hover:bg-neon-purple/20 rounded-full flex items-center justify-center text-white hover:text-neon-purple transition-all duration-300 border border-white/20 hover:border-neon-purple/50"
+                className="group w-12 h-12 bg-gradient-to-br from-white/10 to-white/5 hover:from-red-500/20 hover:to-red-600/10 rounded-xl flex items-center justify-center text-white hover:text-red-400 transition-all duration-300 border border-white/20 hover:border-red-400/50 hover:shadow-lg hover:shadow-red-400/25 hover:-translate-y-1"
               >
                 <svg
-                  className="w-5 h-5"
+                  className="w-6 h-6 transition-transform group-hover:scale-110"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -52,60 +65,17 @@ const Footer: React.FC = () => {
               </a>
             </div>
           </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/#about"
-                  className="text-white/70 hover:text-neon-purple transition-colors duration-300"
-                >
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/#how-it-works"
-                  className="text-white/70 hover:text-neon-purple transition-colors duration-300"
-                >
-                  How It Works
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/documentation"
-                  className="text-white/70 hover:text-neon-purple transition-colors duration-300"
-                >
-                  Documentation
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/game"
-                  className="text-white/70 hover:text-neon-purple transition-colors duration-300"
-                >
-                  Game
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="text-white/70 hover:text-neon-purple transition-colors duration-300"
-                >
-                  Contact
-                </Link>
-              </li>
-            </ul>
-          </div>
         </div>
 
-        {/* Bottom Section - Simplified */}
-        <div className="pt-8 border-t border-white/10">
-          <div className="text-center">
-            <p className="text-white/60 text-sm">
+        {/* Bottom Section - Copyright with decorative line */}
+        <div className="pt-6 border-t border-gradient-to-r from-transparent via-white/20 to-transparent relative">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-neon-purple/50 to-transparent"></div>
+          <div className="text-center pt-2">
+            <p className="text-white/70 text-sm font-medium">
               © 2025 OptiBlink. All rights reserved.
+            </p>
+            <p className="text-white/50 text-xs mt-1">
+              Built with ❤️ for accessibility
             </p>
           </div>
         </div>

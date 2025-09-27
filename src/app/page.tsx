@@ -10,21 +10,20 @@ import Footer from '@/components/Footer'
 const TypewriterSequence = () => {
   const phrases = [
     ".-..--.-.",
-    "Blink your eyes",
     "--.--.--.",
-    "Dots and dashes detected",
     "..-.-..--.",
-    "Morse code converted to text",
     ".-.---.....",
-    "Smart suggestions appear",
+    "---..-...",
     ".----..-...-.",
-    "Select words with blinks",
     "..-----....-",
-    "Hear it with text-to-speech",
+    "-.-..--.--",
+    "..-.....-..",
+    ".----....-",
+    ".-....----..",
     "-..-.-...--.--",
-    "Send messages hands-free",
-    "--.---......",
-    "Trigger SOS in emergencies"
+    "..----...-",
+    ".-.---.-.",
+    "--.---......"
   ]
 
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0)
@@ -68,7 +67,7 @@ const TypewriterSequence = () => {
 
   return (
     <div className="h-20 flex items-center justify-center">
-      <p className="font-bold italic text-neon-purple/90 min-h-[1.2em] flex items-center" style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '20px' }}>
+      <p className="text-4xl font-bold italic text-neon-purple/90 min-h-[1.2em] flex items-center" style={{ fontFamily: 'Montserrat, sans-serif' }}>
         {currentText}
       </p>
     </div>
@@ -101,8 +100,8 @@ export default function Home() {
     },
     {
       icon: "⚡",
-      title: "Real-time Decoding",
-      description: "Instant translation of Morse code to text with sub-second response times."
+      title: "Special Commands",
+      description: "Supports Enter, Space, Backspace, Caps, SOS, TTS toggle and other control sequences."
     },
     {
       icon: "🤖",
@@ -116,18 +115,18 @@ export default function Home() {
     },
     {
       icon: "📱",
-      title: "Cross-platform",
-      description: "Available on Android, iOS, and web browsers for universal accessibility."
+      title: "Self-Calibration",
+      description: "Automatically calibrates blink thresholds at startup for different users and lighting."
     },
     {
       icon: "🔒",
-      title: "Privacy First",
-      description: "All processing happens locally on your device, ensuring complete privacy."
+      title: "Sleep Mode",
+      description: "Pauses inputs when eyes are closed for 5s; same action wakes the system."
     },
     {
       icon: "🎯",
-      title: "Customizable",
-      description: "Adjustable sensitivity and personalization options for optimal user experience."
+      title: "Emergency SOS",
+      description: "Trigger SOS to call and send WhatsApp message to a saved contact."
     }
   ]
 

@@ -30,8 +30,10 @@ module.exports = {
         }
       },
       fontFamily: {
+        'sans': ['Red Hat Display', 'Poppins', 'sans-serif'], // Red Hat Display as default body font
         'poppins': ['Poppins', 'sans-serif'],
         'montserrat': ['Montserrat', 'sans-serif'],
+        'red-hat': ['Red Hat Display', 'sans-serif'], // Explicit Red Hat Display class
       },
       animation: {
         'glow': 'glow 2s ease-in-out infinite alternate',

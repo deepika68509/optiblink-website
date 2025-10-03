@@ -1,8 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'OptiBlink - Eye Blink Morse Code Communication',
@@ -26,7 +23,7 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/assets/icons/optiblink-logo.svg" />
         <link rel="apple-touch-icon" href="/assets/icons/optiblink-logo.svg" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body>{children}</body>
     </html>
   )
 }

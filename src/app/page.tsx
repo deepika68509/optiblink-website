@@ -281,27 +281,11 @@ export default function Home() {
 
         {/* Hero Section (foreground - faster) */}
         <motion.section
-          className="relative min-h-screen flex items-center justify-center overflow-hidden"
+          className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 sm:pt-20 md:pt-8 lg:pt-0"
           style={{ y: yFast }}
         >
-          {/* Halo glows inside hero removed since global halos exist */}
-          {/* Morse Background (subtle) */}
-          <motion.div style={{ y: ySlow }} className="absolute inset-0 will-change-transform">
-            <div className="absolute inset-0 pointer-events-none select-none">
-              {morseRows.map((row, idx) => (
-                <motion.div
-                  key={idx}
-                  className="w-[200%] text-neon-purple/12 text-sm md:text-base whitespace-nowrap will-change-transform"
-                  style={{ top: `${(idx / morseRows.length) * 100}%`, left: '-50%', position: 'absolute' }}
-                  animate={{ x: ['0%', '-6%', '0%'] }}
-                  transition={{ duration: 30 + idx, repeat: Infinity, ease: 'linear', delay: idx * 0.6 }}
-                >
-                  {row}
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
+          {/* REMOVED: Morse Background (subtle) - as requested */}
+          
           {/* Content */}
           <motion.div
             className="relative z-10 text-center max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"

@@ -178,6 +178,8 @@ export default function Documentation() {
             <li><strong>Blink Detection:</strong> measure blink duration; short &lt; 0.3s = dot, long ≥ 0.3s = dash.</li>
             <li><strong>Character Formation:</strong> pause (eyes open ≥ 1.0s) marks character completion → decode from morse map.</li>
             <li><strong>Actions:</strong> decoded letters appended to word buffer or special commands triggered (ENTER, SPACE, SELECTi, SOS, etc.).</li>
+            <li><strong>Recalibration:</strong> Press 'R' anytime to recalibrate and reset eye detection baselines, ensuring accuracy under changing lighting or camera conditions.</li>
+
           </ol>
 
           {/* YouTube Demo Video */}
@@ -231,6 +233,18 @@ export default function Documentation() {
               </ul>
             </div>
 
+            {/* New Recalibration section */}
+            <div>
+              <h4 className="text-lg font-semibold mb-2 text-neon-purple">Recalibration:</h4>
+              <ul className="list-disc ml-5 text-white/80 space-y-1">
+                <li>Press the 'R' key on your keyboard at any time to trigger system recalibration.</li>
+                <li>Recalibration resets the baseline values for your eye states, adjusting to current conditions.</li>
+                <li>This feature is particularly useful when lighting conditions change throughout the day.</li>
+                <li>It's also helpful if you change your seating position or distance from the camera.</li>
+                <li>Regular recalibration ensures the system maintains high accuracy in various environments.</li>
+              </ul>
+            </div>
+
             <div>
               <h4 className="text-lg font-semibold mb-2 text-neon-purple">Blink Detection:</h4>
               <ul className="list-disc ml-5 text-white/80 space-y-1">
@@ -272,63 +286,68 @@ export default function Documentation() {
             <table className="w-full border border-white/20 rounded-lg text-sm">
               <thead>
                 <tr className="border-b border-white/20">
-                  <th className="text-left p-3 text-neon-purple font-semibold border-r border-white/10">Morse Code</th>
                   <th className="text-left p-3 text-neon-purple font-semibold border-r border-white/10">Character/Command</th>
+                  <th className="text-left p-3 text-neon-purple font-semibold border-r border-white/10">Morse Code</th>
                   <th className="text-left p-3 text-neon-purple font-semibold">Description</th>
                 </tr>
               </thead>
               <tbody className="text-white/80">
-                {/* Letters A-Z */}
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.-</td><td className="p-3 font-bold border-r border-white/10">A</td><td className="p-3">Letter 'A'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">-...</td><td className="p-3 font-bold border-r border-white/10">B</td><td className="p-3">Letter 'B'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">-.-.</td><td className="p-3 font-bold border-r border-white/10">C</td><td className="p-3">Letter 'C'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">-..</td><td className="p-3 font-bold border-r border-white/10">D</td><td className="p-3">Letter 'D'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.</td><td className="p-3 font-bold border-r border-white/10">E</td><td className="p-3">Letter 'E'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">..-.</td><td className="p-3 font-bold border-r border-white/10">F</td><td className="p-3">Letter 'F'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">--.</td><td className="p-3 font-bold border-r border-white/10">G</td><td className="p-3">Letter 'G'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">....</td><td className="p-3 font-bold border-r border-white/10">H</td><td className="p-3">Letter 'H'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">..</td><td className="p-3 font-bold border-r border-white/10">I</td><td className="p-3">Letter 'I'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.---</td><td className="p-3 font-bold border-r border-white/10">J</td><td className="p-3">Letter 'J'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">-.-</td><td className="p-3 font-bold border-r border-white/10">K</td><td className="p-3">Letter 'K'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.-..</td><td className="p-3 font-bold border-r border-white/10">L</td><td className="p-3">Letter 'L'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">--</td><td className="p-3 font-bold border-r border-white/10">M</td><td className="p-3">Letter 'M'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">-.</td><td className="p-3 font-bold border-r border-white/10">N</td><td className="p-3">Letter 'N'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">---</td><td className="p-3 font-bold border-r border-white/10">O</td><td className="p-3">Letter 'O'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.--.</td><td className="p-3 font-bold border-r border-white/10">P</td><td className="p-3">Letter 'P'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">--.-</td><td className="p-3 font-bold border-r border-white/10">Q</td><td className="p-3">Letter 'Q'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.-.</td><td className="p-3 font-bold border-r border-white/10">R</td><td className="p-3">Letter 'R'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">...</td><td className="p-3 font-bold border-r border-white/10">S</td><td className="p-3">Letter 'S'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">-</td><td className="p-3 font-bold border-r border-white/10">T</td><td className="p-3">Letter 'T'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">..-</td><td className="p-3 font-bold border-r border-white/10">U</td><td className="p-3">Letter 'U'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">...-</td><td className="p-3 font-bold border-r border-white/10">V</td><td className="p-3">Letter 'V'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.--</td><td className="p-3 font-bold border-r border-white/10">W</td><td className="p-3">Letter 'W'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">-..-</td><td className="p-3 font-bold border-r border-white/10">X</td><td className="p-3">Letter 'X'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">-.--</td><td className="p-3 font-bold border-r border-white/10">Y</td><td className="p-3">Letter 'Y'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.-..</td><td className="p-3 font-bold border-r border-white/10">Z</td><td className="p-3">Letter 'Z'</td></tr>
+
+              
+                {/* Letters A-Z - Swapped column order */}
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">A</td><td className="p-3 font-mono border-r border-white/10">.-</td><td className="p-3">Letter 'A'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">B</td><td className="p-3 font-mono border-r border-white/10">-...</td><td className="p-3">Letter 'B'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">C</td><td className="p-3 font-mono border-r border-white/10">---.</td><td className="p-3">Letter 'C'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">D</td><td className="p-3 font-mono border-r border-white/10">-..</td><td className="p-3">Letter 'D'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">E</td><td className="p-3 font-mono border-r border-white/10">.</td><td className="p-3">Letter 'E'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">F</td><td className="p-3 font-mono border-r border-white/10">..-.</td><td className="p-3">Letter 'F'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">G</td><td className="p-3 font-mono border-r border-white/10">--.</td><td className="p-3">Letter 'G'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">H</td><td className="p-3 font-mono border-r border-white/10">....</td><td className="p-3">Letter 'H'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">I</td><td className="p-3 font-mono border-r border-white/10">..</td><td className="p-3">Letter 'I'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">J</td><td className="p-3 font-mono border-r border-white/10">.---</td><td className="p-3">Letter 'J'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">K</td><td className="p-3 font-mono border-r border-white/10">-.-</td><td className="p-3">Letter 'K'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">L</td><td className="p-3 font-mono border-r border-white/10">.-..</td><td className="p-3">Letter 'L'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">M</td><td className="p-3 font-mono border-r border-white/10">----</td><td className="p-3">Letter 'M'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">N</td><td className="p-3 font-mono border-r border-white/10">-.</td><td className="p-3">Letter 'N'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">O</td><td className="p-3 font-mono border-r border-white/10">---</td><td className="p-3">Letter 'O'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">P</td><td className="p-3 font-mono border-r border-white/10">.--.</td><td className="p-3">Letter 'P'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">Q</td><td className="p-3 font-mono border-r border-white/10">--.-</td><td className="p-3">Letter 'Q'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">R</td><td className="p-3 font-mono border-r border-white/10">.-.</td><td className="p-3">Letter 'R'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">S</td><td className="p-3 font-mono border-r border-white/10">...</td><td className="p-3">Letter 'S'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">T</td><td className="p-3 font-mono border-r border-white/10">-</td><td className="p-3">Letter 'T'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">U</td><td className="p-3 font-mono border-r border-white/10">..-</td><td className="p-3">Letter 'U'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">V</td><td className="p-3 font-mono border-r border-white/10">...-</td><td className="p-3">Letter 'V'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">W</td><td className="p-3 font-mono border-r border-white/10">.--</td><td className="p-3">Letter 'W'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">X</td><td className="p-3 font-mono border-r border-white/10">-..-</td><td className="p-3">Letter 'X'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">Y</td><td className="p-3 font-mono border-r border-white/10">-.--</td><td className="p-3">Letter 'Y'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">Z</td><td className="p-3 font-mono border-r border-white/10">--..</td><td className="p-3">Letter 'Z'</td></tr>
+                 
+                {/* Numbers 0-9 - Swapped column order */}
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">0</td><td className="p-3 font-mono border-r border-white/10">-----</td><td className="p-3">Number '0'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">1</td><td className="p-3 font-mono border-r border-white/10">.----</td><td className="p-3">Number '1'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">2</td><td className="p-3 font-mono border-r border-white/10">..---</td><td className="p-3">Number '2'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">3</td><td className="p-3 font-mono border-r border-white/10">...--</td><td className="p-3">Number '3'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">4</td><td className="p-3 font-mono border-r border-white/10">....-</td><td className="p-3">Number '4'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">5</td><td className="p-3 font-mono border-r border-white/10">.....</td><td className="p-3">Number '5'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">6</td><td className="p-3 font-mono border-r border-white/10">-....</td><td className="p-3">Number '6'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">7</td><td className="p-3 font-mono border-r border-white/10">--...</td><td className="p-3">Number '7'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">8</td><td className="p-3 font-mono border-r border-white/10">---..</td><td className="p-3">Number '8'</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">9</td><td className="p-3 font-mono border-r border-white/10">----.</td><td className="p-3">Number '9'</td></tr>
                 
-                {/* Numbers 0-9 */}
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">-----</td><td className="p-3 font-bold border-r border-white/10">0</td><td className="p-3">Number '0'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.----</td><td className="p-3 font-bold border-r border-white/10">1</td><td className="p-3">Number '1'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">..---</td><td className="p-3 font-bold border-r border-white/10">2</td><td className="p-3">Number '2'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">...--</td><td className="p-3 font-bold border-r border-white/10">3</td><td className="p-3">Number '3'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">....-</td><td className="p-3 font-bold border-r border-white/10">4</td><td className="p-3">Number '4'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.....</td><td className="p-3 font-bold border-r border-white/10">5</td><td className="p-3">Number '5'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">-....</td><td className="p-3 font-bold border-r border-white/10">6</td><td className="p-3">Number '6'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">--...</td><td className="p-3 font-bold border-r border-white/10">7</td><td className="p-3">Number '7'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">---..</td><td className="p-3 font-bold border-r border-white/10">8</td><td className="p-3">Number '8'</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">----.</td><td className="p-3 font-bold border-r border-white/10">9</td><td className="p-3">Number '9'</td></tr>
-                
-                {/* Special Commands */}
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.-.-</td><td className="p-3 font-bold border-r border-white/10">ENTER</td><td className="p-3">Sends the current message and presses Enter</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">..-</td><td className="p-3 font-bold border-r border-white/10">SPACE</td><td className="p-3">Inserts a space and presses Space key</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">--</td><td className="p-3 font-bold border-r border-white/10">BACKSPACE</td><td className="p-3">Deletes the last character typed</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.--.-</td><td className="p-3 font-bold border-r border-white/10">CAPS</td><td className="p-3">Toggles Caps Lock for subsequent letters</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.._.</td><td className="p-3 font-bold border-r border-white/10">CLEAR</td><td className="p-3">Clears all text and resets the word buffer</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">......</td><td className="p-3 font-bold border-r border-white/10">SOS</td><td className="p-3">Sends "SOS" and can speak it</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">-.-.-</td><td className="p-3 font-bold border-r border-white/10">TTS_TOGGLE</td><td className="p-3">Toggles Text-to-Speech (TTS) on/off</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.---.</td><td className="p-3 font-bold border-r border-white/10">SELECT1</td><td className="p-3">Selects the first auto-completion suggestion</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.--.</td><td className="p-3 font-bold border-r border-white/10">SELECT2</td><td className="p-3">Selects the second auto-completion suggestion</td></tr>
-                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">.-..</td><td className="p-3 font-bold border-r border-white/10">SELECT3</td><td className="p-3">Selects the third auto-completion suggestion</td></tr>
+               
+                {/* Special Commands - Swapped column order */}
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">ENTER</td><td className="p-3 font-mono border-r border-white/10">.-.-</td><td className="p-3">Sends the current message and presses Enter</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">SPACE</td><td className="p-3 font-mono border-r border-white/10">..--</td><td className="p-3">Inserts a space and presses Space key</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">BACKSPACE</td><td className="p-3 font-mono border-r border-white/10">--</td><td className="p-3">Deletes the last character typed</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">CAPS</td><td className="p-3 font-mono border-r border-white/10">.--.-</td><td className="p-3">Toggles Caps Lock for subsequent letters</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">CLEAR</td><td className="p-3 font-mono border-r border-white/10">..-..</td><td className="p-3">Clears all text and resets the word buffer</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">SOS</td><td className="p-3 font-mono border-r border-white/10">......</td><td className="p-3">Sends "SOS" and can speak it</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">TTS_TOGGLE</td><td className="p-3 font-mono border-r border-white/10">-.-.-</td><td className="p-3">Toggles Text-to-Speech (TTS) on/off</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">SELECT1</td><td className="p-3 font-mono border-r border-white/10">.---.</td><td className="p-3">Selects the first auto-completion suggestion</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">SELECT2</td><td className="p-3 font-mono border-r border-white/10">..--.</td><td className="p-3">Selects the second auto-completion suggestion</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">SELECT3</td><td className="p-3 font-mono border-r border-white/10">.--.. </td><td className="p-3">Selects the third auto-completion suggestion</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-bold border-r border-white/10">RECALIBRATION</td><td className="p-3 font-mono border-r border-white/10">R</td><td className="p-3">Recalibrates the eye blink detection system</td></tr>
+
               </tbody>
             </table>
           </div>
@@ -407,7 +426,7 @@ export default function Documentation() {
                 </tr>
                 <tr className="border-b border-white/5">
                   <td className="p-3 font-bold border-r border-white/10">SELECT3</td>
-                  <td className="p-3 font-mono border-r border-white/10">.--.</td>
+                  <td className="p-3 font-mono border-r border-white/10">.--..</td>
                   <td className="p-3">Picks the third suggestion.</td>
                 </tr>
               </tbody>
@@ -447,40 +466,27 @@ export default function Documentation() {
                   <td className="p-3 font-mono border-r border-white/10">.-.-</td>
                   <td className="p-3">Sends the current message to the active application, just like pressing the Enter key. The message is cleared from the input buffer, and if Text-to-Speech is enabled, it's spoken aloud.</td>
                 </tr>
+              
+                
                 <tr className="border-b border-white/5">
                   <td className="p-3 font-bold border-r border-white/10">SPACE</td>
-                  <td className="p-3 font-mono border-r border-white/10">..-</td>
+                  <td className="p-3 font-mono border-r border-white/10">..--</td>
                   <td className="p-3">Adds a space to your message, clearing the Morse character buffer so you can start a new word.</td>
                 </tr>
+                
+                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">BACKSPACE</td><td className="p-3 font-bold border-r border-white/10">- -</td><td className="p-3">Deletes the last character typed</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">CAPS</td><td className="p-3 font-bold border-r border-white/10">. - - . -</td><td className="p-3">Toggles Caps Lock for subsequent letters</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">CLEAR</td><td className="p-3 font-bold border-r border-white/10">. . - . .</td><td className="p-3">Clears all text and resets the word buffer</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">SOS</td><td className="p-3 font-bold border-r border-white/10">. . . . . .</td><td className="p-3">Sends "SOS" and can speak it</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">TTS_TOGGLE</td><td className="p-3 font-bold border-r border-white/10">- . - . -</td><td className="p-3">Toggles Text-to-Speech (TTS) on/off</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">SELECT1</td><td className="p-3 font-bold border-r border-white/10">. - - - .</td><td className="p-3">Selects the first auto-completion suggestion</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">SELECT2</td><td className="p-3 font-bold border-r border-white/10">. . - - .</td><td className="p-3">Selects the second auto-completion suggestion</td></tr>
+                <tr className="border-b border-white/5"><td className="p-3 font-mono border-r border-white/10">SELECT3</td><td className="p-3 font-bold border-r border-white/10">. - - . .</td><td className="p-3">Selects the third auto-completion suggestion</td></tr>
+                {/* Adding new RECALIBRATE command here */}
                 <tr className="border-b border-white/5">
-                  <td className="p-3 font-bold border-r border-white/10">BACKSPACE</td>
-                  <td className="p-3 font-mono border-r border-white/10">--</td>
-                  <td className="p-3">Deletes the last character, both from the message and the active application, helping you correct mistakes.</td>
-                </tr>
-                <tr className="border-b border-white/5">
-                  <td className="p-3 font-bold border-r border-white/10">CAPS</td>
-                  <td className="p-3 font-mono border-r border-white/10">.--.-</td>
-                  <td className="p-3">Toggles uppercase letters on or off. When active, all letters typed via blinks will appear in uppercase.</td>
-                </tr>
-                <tr className="border-b border-white/5">
-                  <td className="p-3 font-bold border-r border-white/10">CLEAR</td>
-                  <td className="p-3 font-mono border-r border-white/10">.._..</td>
-                  <td className="p-3">Clears your entire message and erases text in the active application so you can start fresh.</td>
-                </tr>
-                <tr className="border-b border-white/5">
-                  <td className="p-3 font-bold border-r border-white/10">SOS</td>
-                  <td className="p-3 font-mono border-r border-white/10">......</td>
-                  <td className="p-3">Sends an emergency "SOS" message and, if Text-to-Speech is enabled, announces it aloud.</td>
-                </tr>
-                <tr className="border-b border-white/5">
-                  <td className="p-3 font-bold border-r border-white/10">SLEEP</td>
-                  <td className="p-3 font-mono border-r border-white/10">-</td>
-                  <td className="p-3">Pauses blink detection to prevent accidental inputs. This mode can activate automatically after a few seconds of eye closure or manually via a blink pattern. You can wake the system using the same pattern or Morse code.</td>
-                </tr>
-                <tr className="border-b border-white/5">
-                  <td className="p-3 font-bold border-r border-white/10">TTS_TOGGLE</td>
-                  <td className="p-3 font-mono border-r border-white/10">-.-.-</td>
-                  <td className="p-3">Turns the Text-to-Speech feature on or off. If turned on, any existing message in the buffer is spoken aloud immediately.</td>
+                  <td className="p-3 font-bold border-r border-white/10">RECALIBRATE</td>
+                  <td className="p-3 font-mono border-r border-white/10">Letter 'R'</td>
+                  <td className="p-3">Triggers recalibration of the eye blink detection system, resetting the baseline values for open/closed eye states to adapt to new lighting conditions or user positioning. Activate it by pressing the 'R' key on keyboard.</td>
                 </tr>
               </tbody>
             </table>
@@ -584,8 +590,6 @@ export default function Documentation() {
             <p>📡 Accurate device location: Device location (accuracy: 15.0m)</p>
             <p>🗺️ Google Maps: https://maps.google.com/?q=40.7128,-74.0060</p>
             <p>📱 Coordinates: 40.7128, -74.0060</p>
-            <br />
-            <p>📝 Additional info: Hello. I am in an emergency situation. I need your help. My location is shared via WhatsApp.</p>
           </div>
 
           <h4 className="text-lg font-semibold mt-4 mb-2">Location Sharing:</h4>
@@ -607,13 +611,12 @@ export default function Documentation() {
           <h4 className="text-lg font-semibold mt-4 mb-2">Call Process:</h4>
           <ul className="list-disc ml-5 text-white/70 space-y-1">
             <li>The system automatically initiates a phone call via Phone Link.</li>
-            <li>During the call, the system uses Text-to-Speech (TTS) to announce: <em>"I am in an emergency. My location has been sent via WhatsApp. Please check. I need immediate help."</em></li>
           </ul>
 
           <h4 className="text-lg font-semibold mt-4 mb-2">Requirements for Phone Call:</h4>
           <ul className="list-disc ml-5 text-white/70 space-y-1">
             <li>Phone Link app must be installed and set up on your system.</li>
-            <li>Bluetooth must be enabled and connected to your phone for Phone Link to function.</li>
+            <li><strong>Bluetooth</strong> must be enabled and connected to your phone for Phone Link to function.</li>
             <li>TTS must be enabled in the system settings.</li>
           </ul>
 

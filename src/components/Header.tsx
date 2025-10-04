@@ -60,19 +60,19 @@ export default function Header() {
                 </svg>
               </button>
 
-              {/* Logo - Centered on mobile and tablet */}
+              {/* Logo - Centered on mobile and tablet with reduced spacing */}
               <div className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:left-auto lg:transform-none">
-                <Link href="/" className="flex items-center space-x-3 group">
-                  <div className="relative w-12 h-12 flex items-center justify-center">
+                <Link href="/" className="flex items-center space-x-1 sm:space-x-3 group">
+                  <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
                     <Image
                       src="/assets/icons/optiblink-logo.svg"
                       alt="OptiBlink Logo"
                       width={44}
                       height={44}
-                      className="w-10 h-10"
+                      className="w-8 h-8 sm:w-10 sm:h-10"
                     />
                   </div>
-                  <span className="text-xl font-semibold text-white tracking-wide">OptiBlink</span>
+                  <span className="text-lg sm:text-xl font-semibold text-white tracking-wide">OptiBlink</span>
                 </Link>
               </div>
 

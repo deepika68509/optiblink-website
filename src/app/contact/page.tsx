@@ -85,9 +85,10 @@ export default function Contact() {
                   href="https://github.com/ameen90913/OptiBlink/issues"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white/80 underline"
+                  className="text-white/80 underline break-words"
                 >
-                  github.com/ameen90913/OptiBlink/issues
+                  <span className="hidden sm:inline">github.com/ameen90913/OptiBlink/issues</span>
+                  <span className="inline sm:hidden">OptiBlink GitHub Issues</span>
                 </a>
               </li>
             </ul>

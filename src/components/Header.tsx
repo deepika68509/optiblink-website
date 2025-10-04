@@ -18,7 +18,7 @@ export default function Header() {
 
   // Close mobile menu on route change or ESC key
   useEffect(() => {
-    const handleEsc = (event) => {
+    const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMobileMenuOpen(false)
       }

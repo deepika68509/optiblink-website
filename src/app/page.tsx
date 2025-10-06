@@ -11,21 +11,21 @@ import eyeBlinkingAnimation from '../../public/assets/icons/eye-blinking.json'
 // Typewriter Animation Component
 const TypewriterSequence = () => {
   const phrases = [
-    ".-..--.-.",
-    "--.--.--.",
-    "..-.-..--.",
-    ".-.---.....",
-    "---..-...",
-    ".----..-...-.",
-    "..-----....-",
-    "-.-..--.--",
-    "..-.....-..",
-    ".----....-",
-    ".-....----..",
-    "-..-.-...--.--",
-    "..----...-",
-    ".-.---.-.",
-    "--.---......"
+    ".-",
+    "--.",
+    "..-.",
+    ".-.-",
+    "---.",
+    ".---",
+    "..--",
+    "-.-..",
+    "..-..",
+    ".---",
+    ".-.",
+    "-..-.",
+    "..--",
+    ".-.-",
+    "--.-"
   ]
 
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0)

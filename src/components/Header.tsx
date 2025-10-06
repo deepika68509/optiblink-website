@@ -102,7 +102,7 @@ export default function Header() {
             {/* CTA Button - Hidden on mobile and tablet */}
             <div className="hidden lg:block">
               <Link href="/#download" className="btn-primary">
-                Download APK
+                Download Now
               </Link>
             </div>
           </div>

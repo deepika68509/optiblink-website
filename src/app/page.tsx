@@ -342,7 +342,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: 'easeOut', delay: 0.45 }}
             >
-              <button className="btn-primary text-lg px-8 py-4">Download APK</button>
+              <button className="btn-primary text-lg px-8 py-4">Download .exe</button>
             </motion.div>
           </motion.div>
         </motion.section>

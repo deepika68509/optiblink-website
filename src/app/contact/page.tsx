@@ -58,7 +58,7 @@ export default function Contact() {
               <span className="text-gradient">Contact OptiBlink</span>
             </h1>
             <p className="text-xl text-white/70 max-w-2xl mx-auto">
-              We're here to help. Send a message, report a bug, or request a feature. Typical response time is 24–48 hours.
+              We&apos;re here to help. Send a message, report a bug, or request a feature. Typical response time is 24–48 hours.
             </p>
           </motion.div>
 

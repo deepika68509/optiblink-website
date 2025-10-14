@@ -13,8 +13,46 @@ A revolutionary eye blink detection system that converts natural eye movements i
 - **🚨 Emergency SOS** - Trigger SOS to call and send WhatsApp message to a saved contact
 - **😴 Sleep Mode** - Pauses inputs when eyes are closed for 5s; same action wakes the system
 - **🔧 Self-Calibration** - Automatically calibrates blink thresholds at startup for different users and lighting
-- **🎮 Interactive Morse Game** - Learn and practice Morse code through an engaging game experience
+- **🎮 Interactive Morse Game** - Learn and practice Morse code through an engaging bubble pop game experience
 - **🔒 Privacy First** - All processing happens locally on your device with no external data transmission
+
+## 🎮 Bubble Pop Game
+
+The OptiBlink Bubble Pop Game is an interactive learning experience that combines entertainment with Morse code education.
+
+### Game Features
+- **2-Level Progression**: Level 1 (50 points) → Level 2 (100 points) with increasing speed
+- **Morse Code Learning**: Visual reference and pattern recognition with unique letters per level
+- **Real-time Feedback**: Live Morse code input display with auto-submit after 2 seconds
+- **Strategic Lives System**: 3 lives per level with fresh lives for level 2
+- **Progressive Difficulty**: Faster bubbles and higher score requirements
+- **Camera Integration**: Ready for eye blink detection with manual testing buttons
+- **Auto-Submit**: Morse code automatically submits after 2 seconds of inactivity
+- **In-Game Reference**: Expandable Morse code reference chart during gameplay
+
+### How to Play
+1. **Objective**: Pop falling bubbles by entering the correct Morse code pattern
+2. **Controls**: 
+   - `Space` = Dot (.)
+   - `Shift + Space` = Dash (-)
+   - `Enter` = Submit pattern
+   - `Backspace` = Delete last character
+   - **Auto-submit**: Morse code submits automatically after 2 seconds of inactivity
+3. **Game Flow**:
+   - Level 1: Reach 50 points (5 bubbles) to unlock level 2
+   - Level 2: Fresh 3 lives, reach 100 points (10 bubbles) to win
+   - Lives reset between levels, score resets for level 2
+4. **Scoring**: 10 points per bubble popped (consistent across levels)
+5. **Lives**: 3 lives per level, lose one for missed bubbles or wrong codes
+6. **Features**: In-game Morse code reference, manual blink testing buttons, real-time input display
+
+### Future Enhancements
+- **Real Blink Detection**: MediaPipe Face Mesh integration for actual eye tracking
+- **Multiple Game Modes**: Learning, Speed, Endurance, and Custom modes
+- **Achievements System**: Unlock badges and track progress
+- **Leaderboards**: Global and local high score tracking
+- **Sound Effects**: Audio feedback for successful pops and misses
+- **Advanced Statistics**: Detailed performance analytics and improvement tracking
 
 ## 🚀 Tech Stack
 
@@ -43,6 +81,7 @@ A revolutionary eye blink detection system that converts natural eye movements i
 ### Prerequisites
 - Node.js 18+ and npm/yarn
 - Git
+- Camera access for game functionality
 
 ### Quick Start
 ```bash
@@ -50,13 +89,29 @@ A revolutionary eye blink detection system that converts natural eye movements i
 git clone https://github.com/yourusername/optiblink-website.git
 cd optiblink-website
 
-# Install dependencies
+# Install dependencies (includes MediaPipe for eye tracking)
 npm install
 
 # Run development server
 npm run dev
 
 # Open http://localhost:3000 in your browser
+# Navigate to /game to play the Bubble Pop game
+```
+
+### Game Dependencies
+The project includes specialized dependencies for the interactive game:
+```bash
+# MediaPipe for future eye tracking integration
+@mediapipe/face_mesh
+@mediapipe/camera_utils  
+@mediapipe/drawing_utils
+
+# Camera access
+react-webcam
+
+# Animations and interactions
+framer-motion
 ```
 
 ### Build for Production
@@ -74,17 +129,20 @@ npm start
 optiblink-website/
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx          # Main homepage
-│   │   ├── layout.tsx        # Root layout
-│   │   ├── globals.css       # Global styles
-│   │   ├── documentation/    # Documentation page
-│   │   ├── game/            # Game page
-│   │   └── contact/         # Contact page
-│   └── components/          # Reusable components
-├── public/                  # Static assets
-├── tailwind.config.js      # Tailwind configuration
-├── next.config.js          # Next.js configuration
-└── package.json            # Dependencies and scripts
+│   │   ├── page.tsx              # Main homepage
+│   │   ├── layout.tsx            # Root layout
+│   │   ├── globals.css           # Global styles
+│   │   ├── documentation/        # Documentation page
+│   │   ├── game/                # Interactive Morse code game
+│   │   │   ├── page.tsx         # Game component with bubble mechanics
+│   │   │   └── components/      # Game-specific components
+│   │   │       └── BlinkDetector.tsx  # Camera and blink detection
+│   │   └── contact/             # Contact page
+│   └── components/              # Reusable site components
+├── public/                      # Static assets
+├── tailwind.config.js          # Tailwind configuration
+├── next.config.js              # Next.js configuration
+└── package.json                # Dependencies and scripts
 ```
 
 ## 🎯 Key Sections

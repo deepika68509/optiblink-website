@@ -15,7 +15,8 @@
     "next": "^14.2.33",
     "react": "^18",
     "react-dom": "^18",
-    "mediapipe": "^0.4.0",
+    "@mediapipe/camera_utils": "^0.3.1675466862",
+    "@mediapipe/face_mesh": "^0.4.1633559619",
     "gsap": "^3.11.5"
   },
   "devDependencies": {

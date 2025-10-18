@@ -3,8 +3,8 @@
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import BlinkDetector from './components/BlinkDetector'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 
 // Morse code mapping
 const MORSE_CODE: { [key: string]: string } = {
@@ -57,6 +57,7 @@ interface GameStats {
 }
 
 export default function Game() {
+  const router = useRouter()
   const [gameStarted, setGameStarted] = useState(false)
   const [bubbles, setBubbles] = useState<Bubble[]>([])
   const [currentMorse, setCurrentMorse] = useState('')
@@ -67,7 +68,6 @@ export default function Game() {
     bubblesPopped: 0,
     totalBubbles: 0
   })
-  const [showInstructions, setShowInstructions] = useState(false)
   const [gameOver, setGameOver] = useState(false)
   const [cameraEnabled, setCameraEnabled] = useState(false)
   const [blinkDetected, setBlinkDetected] = useState(false)
@@ -75,11 +75,10 @@ export default function Game() {
   const [waitingForNextLevel, setWaitingForNextLevel] = useState(false)
   const [usedLetters, setUsedLetters] = useState<Set<string>>(new Set())
   const [usedColors, setUsedColors] = useState<Set<number>>(new Set())
+  const [isExpandedView, setIsExpandedView] = useState(false)
 
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const gameLoopRef = useRef<NodeJS.Timeout>()
+  const gameLoopRef = useRef<number>()
   const bubbleIdRef = useRef(0)
-  const streamRef = useRef<MediaStream | null>(null)
   
   // Fix for React state closure issue - use refs for current values
   const gameStateRef = useRef({
@@ -105,6 +104,9 @@ export default function Game() {
   // Prevent duplicate lives reduction in same frame
   const livesReductionProcessedRef = useRef(false)
   
+  // Prevent multiple bubble generations
+  const bubbleGenerationInProgressRef = useRef(false)
+  
   // Start/reset auto-submit timer
   const startAutoSubmitTimer = useCallback(() => {
     // Clear existing timer
@@ -118,12 +120,6 @@ export default function Game() {
       const currentState = gameStateRef.current
       const morseToSubmit = currentMorseRef.current
       if (morseToSubmit && currentState.gameStarted && !currentState.gameOver) {
-        console.log('⏰ Auto-submitting Morse code after 2 seconds of inactivity:', morseToSubmit)
-        // Clear the timer before submitting
-        if (autoSubmitTimeoutRef.current) {
-          clearTimeout(autoSubmitTimeoutRef.current)
-          autoSubmitTimeoutRef.current = undefined
-        }
         checkMorseCodeWithValue(morseToSubmit)
       }
     }, 2000)
@@ -136,19 +132,11 @@ export default function Game() {
     bubblesRef.current = bubbles
   }, [gameStarted, cameraEnabled, gameOver, lives, currentMorse, bubbles, waitingForNextLevel])
 
-  // Start auto-submit timer whenever Morse code is added
-  useEffect(() => {
-    if (currentMorse && gameStarted && !gameOver) {
-      startAutoSubmitTimer()
-    }
-  }, [currentMorse, gameStarted, gameOver, startAutoSubmitTimer])
-
   // Handle blink from BlinkDetector component
   const handleBlink = useCallback((isLong: boolean) => {
     // Add debouncing - prevent rapid blink processing
     const currentTime = Date.now()
     if (currentTime - lastBlinkTimeRef.current < 300) {
-      console.log('🚫 Blink ignored - too soon after last blink (debounced)')
       return
     }
     lastBlinkTimeRef.current = currentTime
@@ -156,43 +144,27 @@ export default function Game() {
     // Use refs to get current state values (avoids React closure issues)
     const currentState = gameStateRef.current
     
-    console.log('🎯 Game received blink callback:', { 
-      isLong, 
-      gameStarted: currentState.gameStarted, 
-      cameraEnabled: currentState.cameraEnabled, 
-      gameOver: currentState.gameOver,
-      lives: currentState.lives,
-      currentTime: new Date().toLocaleTimeString()
-    })
-    
     if (!currentState.gameStarted) {
-      console.log('🚫 Blink ignored - GAME NOT STARTED. gameStarted =', currentState.gameStarted)
       return
     }
     
     if (!currentState.cameraEnabled) {
-      console.log('🚫 Blink ignored - CAMERA DISABLED. cameraEnabled =', currentState.cameraEnabled)
       return
     }
     
     if (currentState.gameOver) {
-      console.log('🚫 Blink ignored - GAME OVER. gameOver =', currentState.gameOver)
       return
     }
 
     if (currentState.waitingForNextLevel) {
-      console.log('🚫 Blink ignored - WAITING FOR NEXT LEVEL. waitingForNextLevel =', currentState.waitingForNextLevel)
       return
     }
-    
-    console.log('✅ Blink ACCEPTED! Processing:', isLong ? 'LONG (-)' : 'SHORT (.)')
     
     setBlinkDetected(true)
     const symbol = isLong ? '-' : '.'
     
     setCurrentMorse(prev => {
       const newMorse = prev + symbol
-      console.log('📝 Updated morse code:', newMorse)
       return newMorse
     })
 
@@ -207,14 +179,19 @@ export default function Game() {
   // Simplified blink detection using space bar for backup (when camera fails)
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
+      // Handle Escape key to exit fullscreen
+      if (event.code === 'Escape' && isExpandedView) {
+        event.preventDefault()
+        resetGame()
+        return
+      }
+      
       if (gameStarted && !gameOver && !waitingForNextLevel) { // Always allow keyboard controls as backup
         if (event.code === 'Space') {
           event.preventDefault()
-          console.log('🔵 Keyboard blink:', event.shiftKey ? 'LONG (-)' : 'SHORT (.)')
           simulateBlink(event.shiftKey) // Shift+Space for long blink, Space for short blink
         } else if (event.code === 'Enter') {
           event.preventDefault()
-          console.log('🔵 Manual submit, current morse:', currentMorse)
           checkMorseCode()
         } else if (event.code === 'Backspace') {
           event.preventDefault()
@@ -233,38 +210,23 @@ export default function Game() {
 
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [gameStarted, currentMorse, gameOver, waitingForNextLevel])
+  }, [gameStarted, currentMorse, gameOver, waitingForNextLevel, isExpandedView])
 
-  // Initialize camera
-  const initializeCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480, facingMode: 'user' },
-        audio: false
-      })
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        streamRef.current = stream
-      }
-      
-      setCameraEnabled(true)
-      console.log('Camera initialized successfully')
-    } catch (error) {
-      console.error('Error accessing camera:', error)
-      alert('Camera access denied. You can still play using keyboard controls!')
-      setCameraEnabled(false) // Disable camera but allow keyboard controls
-    }
+  // Initialize camera and start game
+  const initializeCameraAndStart = async () => {
+    // Camera initialization is handled by BlinkDetector component
+    setCameraEnabled(true)
+    
+    // Start the game regardless of camera success/failure
+    startGame()
   }
 
   // Simulate blink detection (placeholder for actual MediaPipe implementation)
   const simulateBlink = (isLong: boolean) => {
-    console.log('🔵 Simulating blink:', isLong ? 'LONG (-)' : 'SHORT (.)')
     setBlinkDetected(true)
     const symbol = isLong ? '-' : '.'
     setCurrentMorse(prev => {
       const newMorse = prev + symbol
-      console.log('📝 Updated morse code:', newMorse)
       return newMorse
     })
 
@@ -292,19 +254,13 @@ export default function Game() {
 
     // Don't process input if waiting for next level
     if (waitingForNextLevel) {
-      console.log('🚫 Input ignored - waiting for next level')
       return
     }
 
-    console.log('🔍 Checking Morse code:', morseValue)
-    console.log('📊 Current bubbles:', bubblesRef.current.map(b => `${b.letter}(${b.morse})`))
-
     const matchingLetter = REVERSE_MORSE[morseValue]
-    console.log('🔤 Matching letter for', morseValue, 'is', matchingLetter)
     
     if (matchingLetter) {
       const matchingBubble = bubblesRef.current.find(bubble => bubble.letter === matchingLetter)
-      console.log('🎈 Found matching bubble:', matchingBubble ? `${matchingBubble.letter}(${matchingBubble.morse})` : 'none')
       
       if (matchingBubble) {
         popBubble(matchingBubble.id)
@@ -314,10 +270,12 @@ export default function Game() {
           bubblesPopped: prev.bubblesPopped + 1,
           accuracy: Math.round(((prev.bubblesPopped + 1) / Math.max(prev.totalBubbles, 1)) * 100)
         }))
-        console.log(`✅ Bubble popped! ${matchingLetter} = ${morseValue}`)
       } else {
         // Wrong morse code - no matching bubble
-        console.log(`❌ Wrong target! ${matchingLetter} = ${morseValue} (no bubble)`)
+        setGameStats(prev => ({
+          ...prev,
+          accuracy: Math.round((prev.bubblesPopped / Math.max(prev.totalBubbles, 1)) * 100)
+        }))
         setLives(prev => {
           const newLives = Math.max(0, prev - 1)
           if (newLives <= 0) {
@@ -334,7 +292,10 @@ export default function Game() {
       }
     } else {
       // Invalid morse code
-      console.log(`❌ Invalid morse code: ${morseValue}`)
+      setGameStats(prev => ({
+        ...prev,
+        accuracy: Math.round((prev.bubblesPopped / Math.max(prev.totalBubbles, 1)) * 100)
+      }))
       setLives(prev => {
         const newLives = Math.max(0, prev - 1)
         if (newLives <= 0) {
@@ -354,188 +315,216 @@ export default function Game() {
 
   // Pop bubble animation and spawn new one
   const popBubble = (id: number) => {
-    console.log(`💥 Popping bubble with id: ${id}`)
     setBubbles(prev => {
       const filtered = prev.filter(bubble => bubble.id !== id)
-      console.log(`📊 Bubbles after pop: ${filtered.length}`)
       return filtered
     })
-    // Only spawn a new bubble if not waiting for next level
-    if (!waitingForNextLevel) {
-      console.log('⏰ Scheduling next bubble generation in 500ms...')
-      setTimeout(() => {
-        generateBubble()
-      }, 500) // 500ms delay before next bubble appears
-    } else {
-      console.log('🚫 Not generating new bubble - waiting for next level')
-    }
+    // Note: Bubble generation is now handled by the game loop to prevent conflicts
   }
 
-  // Generate random bubble
-  const generateBubble = () => {
-    console.log('🎈 Generating new bubble...')
-    const letters = Object.keys(MORSE_CODE)
-    const availableLetters = letters.filter(letter => !usedLetters.has(letter))
 
-    // If all letters have been used, reset the tracking
-    let selectedLetter: string
-    if (availableLetters.length === 0) {
-      console.log('🔄 All letters used, resetting tracking')
-      setUsedLetters(new Set())
-      setUsedColors(new Set())
-      selectedLetter = letters[Math.floor(Math.random() * letters.length)]
-    } else {
-      selectedLetter = availableLetters[Math.floor(Math.random() * availableLetters.length)]
-    }
 
-    // Get available colors
-    const availableColorIndices = BUBBLE_COLORS.map((_, index) => index)
-      .filter(index => !usedColors.has(index))
-
-    let selectedColorIndex: number
-    if (availableColorIndices.length === 0) {
-      console.log('🔄 All colors used, resetting color tracking')
-      setUsedColors(new Set())
-      selectedColorIndex = Math.floor(Math.random() * BUBBLE_COLORS.length)
-    } else {
-      selectedColorIndex = availableColorIndices[Math.floor(Math.random() * availableColorIndices.length)]
-    }
-
-    const selectedColor = BUBBLE_COLORS[selectedColorIndex]
-
-    // Update tracking
-    setUsedLetters(prev => new Set([...Array.from(prev), selectedLetter]))
-    setUsedColors(prev => new Set([...Array.from(prev), selectedColorIndex]))
-
-    const bubble: Bubble = {
-      id: bubbleIdRef.current++,
-      letter: selectedLetter,
-      morse: MORSE_CODE[selectedLetter],
-      x: Math.random() * 80 + 10, // 10-90% of screen width
-      y: -15, // Start higher above screen to give more time
-      speed: Math.random() * 0.5 + 0.3 + gameStats.level * 0.4, // Increasing speed per level
-      size: Math.random() * 30 + 40,
-      color: selectedColor
-    }
-    console.log(`🎈 Created bubble: ${bubble.letter} (${bubble.morse}) at level ${gameStats.level}, speed: ${bubble.speed.toFixed(2)}, color: ${selectedColor.from}`)
-    setBubbles(prev => {
-      const newBubbles = [...prev, bubble]
-      console.log(`📊 Total bubbles on screen: ${newBubbles.length}`)
-      return newBubbles
-    })
-    setGameStats(prev => ({
-      ...prev,
-      totalBubbles: prev.totalBubbles + 1
-    }))
-  }
-
-  // Game loop
+  // Game loop with requestAnimationFrame for ultra-smooth animation
   useEffect(() => {
     if (gameStarted && !gameOver && !waitingForNextLevel) {
-      gameLoopRef.current = setInterval(() => {
-        // Reset lives reduction flag at start of each frame
-        livesReductionProcessedRef.current = false
-        
-        // Move bubbles
-        setBubbles(prev => {
-          const updatedBubbles = prev.map(bubble => ({
-            ...bubble,
-            y: bubble.y + bubble.speed
-          }))
-
-          // Count bubbles that reached bottom
-          const bubblesReachedBottom = updatedBubbles.filter(bubble => bubble.y > 100).length
+      let lastTime = 0
+      const targetFPS = 60 // Target 60 FPS
+      const frameInterval = 1000 / targetFPS // ~16.67ms per frame
+      
+      const gameLoop = (currentTime: number) => {
+        if (currentTime - lastTime >= frameInterval) {
+          lastTime = currentTime
           
-          // Remove bubbles that reached bottom
-          const survivingBubbles = updatedBubbles.filter(bubble => bubble.y <= 100)
-
-          // Reduce lives for bubbles that reached bottom (only once per frame)
-          if (bubblesReachedBottom > 0 && !livesReductionProcessedRef.current) {
-            livesReductionProcessedRef.current = true
-            console.log(`💥 ${bubblesReachedBottom} bubble(s) reached bottom! Reducing lives...`)
-            setLives(prevLives => {
-              const newLives = Math.max(0, prevLives - bubblesReachedBottom)
-              console.log(`❤️ Lives: ${prevLives} -> ${newLives}`)
-              if (newLives <= 0) {
-                console.log('💀 Game Over! No lives left.')
-                // Clear auto-submit timer on game over
-                if (autoSubmitTimeoutRef.current) {
-                  clearTimeout(autoSubmitTimeoutRef.current)
-                  autoSubmitTimeoutRef.current = undefined
-                }
-                setGameOver(true)
-                setGameStarted(false)
-              } else {
-                console.log(`📊 ${newLives} lives remaining. Game continues.`)
-              }
-              return newLives
-            })
-          }
-
-          // Generate new bubble if no bubbles remain (only when not waiting for level)
-          let finalBubbles = survivingBubbles
-          if (survivingBubbles.length === 0 && !waitingForNextLevel) {
-            console.log('🎈 No bubbles remaining, generating new bubble...')
-            const letters = Object.keys(MORSE_CODE)
-            const availableLetters = letters.filter(letter => !usedLetters.has(letter))
-
-            // If all letters have been used, reset the tracking
-            let selectedLetter: string
-            if (availableLetters.length === 0) {
-              console.log('🔄 All letters used, resetting tracking')
-              setUsedLetters(new Set())
-              setUsedColors(new Set())
-              selectedLetter = letters[Math.floor(Math.random() * letters.length)]
-            } else {
-              selectedLetter = availableLetters[Math.floor(Math.random() * availableLetters.length)]
-            }
-
-            // Get available colors
-            const availableColorIndices = BUBBLE_COLORS.map((_, index) => index)
-              .filter(index => !usedColors.has(index))
-
-            let selectedColorIndex: number
-            if (availableColorIndices.length === 0) {
-              console.log('🔄 All colors used, resetting color tracking')
-              setUsedColors(new Set())
-              selectedColorIndex = Math.floor(Math.random() * BUBBLE_COLORS.length)
-            } else {
-              selectedColorIndex = availableColorIndices[Math.floor(Math.random() * availableColorIndices.length)]
-            }
-
-            const selectedColor = BUBBLE_COLORS[selectedColorIndex]
-
-            // Update tracking
-            setUsedLetters(prev => new Set([...Array.from(prev), selectedLetter]))
-            setUsedColors(prev => new Set([...Array.from(prev), selectedColorIndex]))
-
-            const newBubble: Bubble = {
-              id: bubbleIdRef.current++,
-              letter: selectedLetter,
-              morse: MORSE_CODE[selectedLetter],
-              x: Math.random() * 80 + 10,
-              y: -15, // Start higher above screen
-              speed: Math.random() * 0.5 + 0.3 + gameStats.level * 0.4, // Increasing speed per level
-              size: Math.random() * 30 + 40,
-              color: selectedColor
-            }
-            finalBubbles = [newBubble]
-            console.log(`🎈 Generated bubble: ${newBubble.letter} (${newBubble.morse})`)
-
-            // Update game stats
-            setGameStats(prev => ({
-              ...prev,
-              totalBubbles: prev.totalBubbles + 1
+          // Reset lives reduction flag at start of each frame
+          livesReductionProcessedRef.current = false
+          
+          // Move bubbles (optimize by batching updates)
+          setBubbles(prev => {
+            const updatedBubbles = prev.map(bubble => ({
+              ...bubble,
+              y: bubble.y + bubble.speed
             }))
-          }
 
-          return finalBubbles
-        })
-      }, 150)
+            // Count bubbles that reached bottom
+            const bubblesReachedBottom = updatedBubbles.filter(bubble => bubble.y > 100).length
+            
+            // Remove bubbles that reached bottom
+            const survivingBubbles = updatedBubbles.filter(bubble => bubble.y <= 100)
+
+            // Reduce lives for bubbles that reached bottom (only once per frame)
+            if (bubblesReachedBottom > 0 && !livesReductionProcessedRef.current) {
+              livesReductionProcessedRef.current = true
+              setLives(prevLives => {
+                const newLives = Math.max(0, prevLives - bubblesReachedBottom)
+                if (newLives <= 0) {
+                  // Check if level 2 and player has popped enough bubbles for victory
+                  if (gameStats.level >= 2 && gameStats.bubblesPopped >= 7) {
+                    setGameOver(true)
+                    setGameStarted(false)
+                    // Clear any pending auto-submit timer
+                    if (autoSubmitTimeoutRef.current) {
+                      clearTimeout(autoSubmitTimeoutRef.current)
+                      autoSubmitTimeoutRef.current = undefined
+                    }
+                  } else {
+                    // Clear auto-submit timer on game over
+                    if (autoSubmitTimeoutRef.current) {
+                      clearTimeout(autoSubmitTimeoutRef.current)
+                      autoSubmitTimeoutRef.current = undefined
+                    }
+                    setGameOver(true)
+                    setGameStarted(false)
+                  }
+                }
+                return newLives
+              })
+            }
+
+            // Generate new bubble if needed (level-based logic)
+            let finalBubbles = survivingBubbles
+            if (survivingBubbles.length === 0 && !waitingForNextLevel) {
+              // Prevent multiple simultaneous bubble generations
+              if (bubbleGenerationInProgressRef.current) {
+                finalBubbles = survivingBubbles
+              } else {
+                bubbleGenerationInProgressRef.current = true
+                
+                // Level 1: Only 1 bubble at a time
+                // Level 2: Allow multiple bubbles
+                const letters = Object.keys(MORSE_CODE)
+                const availableLetters = letters.filter(letter => !usedLetters.has(letter))
+
+                // If all letters have been used, reset the tracking
+                let selectedLetter: string
+                if (availableLetters.length === 0) {
+                  setUsedLetters(new Set())
+                  setUsedColors(new Set())
+                  selectedLetter = letters[Math.floor(Math.random() * letters.length)]
+                } else {
+                  selectedLetter = availableLetters[Math.floor(Math.random() * availableLetters.length)]
+                }
+
+                // Get available colors
+                const availableColorIndices = BUBBLE_COLORS.map((_, index) => index)
+                  .filter(index => !usedColors.has(index))
+
+                let selectedColorIndex: number
+                if (availableColorIndices.length === 0) {
+                  setUsedColors(new Set())
+                  selectedColorIndex = Math.floor(Math.random() * BUBBLE_COLORS.length)
+                } else {
+                  selectedColorIndex = availableColorIndices[Math.floor(Math.random() * availableColorIndices.length)]
+                }
+
+                const selectedColor = BUBBLE_COLORS[selectedColorIndex]
+
+                // Update tracking
+                setUsedLetters(prev => new Set([...Array.from(prev), selectedLetter]))
+                setUsedColors(prev => new Set([...Array.from(prev), selectedColorIndex]))
+
+                const newBubble: Bubble = {
+                  id: bubbleIdRef.current++,
+                  letter: selectedLetter,
+                  morse: MORSE_CODE[selectedLetter],
+                  x: Math.random() * 80 + 10,
+                  y: -15, // Start higher above screen
+                  speed: Math.random() * 0.05 + 0.03 + gameStats.level * 0.02, // Slightly faster but still gentle
+                  size: Math.random() * 30 + 40,
+                  color: selectedColor
+                }
+                finalBubbles = [newBubble]
+
+                // Update game stats
+                setGameStats(prev => ({
+                  ...prev,
+                  totalBubbles: prev.totalBubbles + 1
+                }))
+                
+                // Reset the generation flag after a short delay
+                setTimeout(() => {
+                  bubbleGenerationInProgressRef.current = false
+                }, 100)
+              }
+            } else if (survivingBubbles.length > 0 && gameStats.level >= 2 && !waitingForNextLevel) {
+              // Level 2+: Allow spawning additional bubbles when there are already some on screen
+              // But limit to maximum 2 bubbles total for balanced gameplay
+              const maxBubbles = 2
+              if (survivingBubbles.length < maxBubbles && Math.random() < 0.08 && !bubbleGenerationInProgressRef.current) {
+                bubbleGenerationInProgressRef.current = true
+                
+                const letters = Object.keys(MORSE_CODE)
+                const availableLetters = letters.filter(letter => !usedLetters.has(letter))
+
+                let selectedLetter: string
+                if (availableLetters.length === 0) {
+                  setUsedLetters(new Set())
+                  setUsedColors(new Set())
+                  selectedLetter = letters[Math.floor(Math.random() * letters.length)]
+                } else {
+                  selectedLetter = availableLetters[Math.floor(Math.random() * availableLetters.length)]
+                }
+
+                // Get available colors
+                const availableColorIndices = BUBBLE_COLORS.map((_, index) => index)
+                  .filter(index => !usedColors.has(index))
+
+                let selectedColorIndex: number
+                if (availableColorIndices.length === 0) {
+                  setUsedColors(new Set())
+                  selectedColorIndex = Math.floor(Math.random() * BUBBLE_COLORS.length)
+                } else {
+                  selectedColorIndex = availableColorIndices[Math.floor(Math.random() * availableColorIndices.length)]
+                }
+
+                const selectedColor = BUBBLE_COLORS[selectedColorIndex]
+
+                // Update tracking
+                setUsedLetters(prev => new Set([...Array.from(prev), selectedLetter]))
+                setUsedColors(prev => new Set([...Array.from(prev), selectedColorIndex]))
+
+                const newBubble: Bubble = {
+                  id: bubbleIdRef.current++,
+                  letter: selectedLetter,
+                  morse: MORSE_CODE[selectedLetter],
+                  x: Math.random() * 80 + 10,
+                  y: -15, // Start higher above screen
+                  speed: Math.random() * 0.05 + 0.03 + gameStats.level * 0.02, // Slightly faster but still gentle
+                  size: Math.random() * 30 + 40,
+                  color: selectedColor
+                }
+                finalBubbles = [...survivingBubbles, newBubble]
+
+                // Update game stats
+                setGameStats(prev => ({
+                  ...prev,
+                  totalBubbles: prev.totalBubbles + 1
+                }))
+                
+                // Reset the generation flag after a short delay
+                setTimeout(() => {
+                  bubbleGenerationInProgressRef.current = false
+                }, 100)
+              } else {
+                finalBubbles = survivingBubbles
+              }
+            } else {
+              finalBubbles = survivingBubbles
+            }
+
+            return finalBubbles
+          })
+        }
+        
+        // Continue the animation loop
+        gameLoopRef.current = requestAnimationFrame(gameLoop)
+      }
+      
+      // Start the animation loop
+      gameLoopRef.current = requestAnimationFrame(gameLoop)
 
       return () => {
         if (gameLoopRef.current) {
-          clearInterval(gameLoopRef.current)
+          cancelAnimationFrame(gameLoopRef.current)
         }
       }
     }
@@ -546,11 +535,8 @@ export default function Game() {
     // Level thresholds: level 1 at 50, level 2 at 100 (score resets for level 2)
     const levelThreshold = gameStats.level * 50
     if (gameStats.score >= levelThreshold && gameStats.score > 0 && !waitingForNextLevel) {
-      console.log(`🎉 Level ${gameStats.level} complete! Score: ${gameStats.score}/${levelThreshold}`)
-
       // If level 2 is completed, end the game with victory
       if (gameStats.level === 2) {
-        console.log('🏆 Game completed! Player won!')
         setGameOver(true)
         setGameStarted(false)
         // Clear any pending auto-submit timer
@@ -570,8 +556,8 @@ export default function Game() {
   }, [gameStats.score, gameStats.level, waitingForNextLevel])
 
   const startGame = () => {
-    console.log('🎮 Starting game! Setting gameStarted to true...')
     setGameStarted(true)
+    setIsExpandedView(true)
     setGameOver(false)
     setBubbles([])
     setCurrentMorse('')
@@ -579,6 +565,7 @@ export default function Game() {
     setWaitingForNextLevel(false)
     setUsedLetters(new Set()) // Reset used letters
     setUsedColors(new Set()) // Reset used colors
+    bubbleGenerationInProgressRef.current = false // Reset bubble generation flag
     setGameStats({
       score: 0,
       accuracy: 100,
@@ -588,12 +575,7 @@ export default function Game() {
     })
     bubbleIdRef.current = 0
     
-    console.log('🎮 Game state updated! gameStarted should now be true')
-    
-    // Generate first bubble immediately
-    setTimeout(() => {
-      generateBubble()
-    }, 1000)
+    // Game loop will handle initial bubble generation automatically
   }
 
   const resetGame = () => {
@@ -603,7 +585,9 @@ export default function Game() {
       autoSubmitTimeoutRef.current = undefined
     }
     
+    // Camera cleanup is handled by BlinkDetector component
     setGameStarted(false)
+    setIsExpandedView(false)
     setGameOver(false)
     setBubbles([])
     setCurrentMorse('')
@@ -611,6 +595,7 @@ export default function Game() {
     setWaitingForNextLevel(false)
     setUsedLetters(new Set()) // Reset used letters
     setUsedColors(new Set()) // Reset used colors
+    bubbleGenerationInProgressRef.current = false // Reset bubble generation flag
     setGameStats({
       score: 0,
       accuracy: 100,
@@ -621,7 +606,6 @@ export default function Game() {
   }
 
   const startNextLevel = () => {
-    console.log(`🚀 Starting level ${gameStats.level + 1}!`)
     setGameStats(prev => ({
       ...prev,
       level: prev.level + 1,
@@ -632,6 +616,7 @@ export default function Game() {
     setCurrentMorse('')
     setUsedLetters(new Set()) // Reset used letters for new level
     setUsedColors(new Set()) // Reset used colors for new level
+    bubbleGenerationInProgressRef.current = false // Reset bubble generation flag
     
     // Clear auto-submit timer
     if (autoSubmitTimeoutRef.current) {
@@ -641,59 +626,108 @@ export default function Game() {
     
     // Clear any remaining bubbles
     setBubbles([])
-    console.log('🧹 Cleared all bubbles for new level')
-    
-    // Generate first bubble for new level
-    setTimeout(() => {
-      generateBubble()
-    }, 1000)
   }
 
   // Cleanup camera stream
   useEffect(() => {
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop())
-      }
+      // Camera cleanup is handled by BlinkDetector component
       // Clear auto-submit timer
       if (autoSubmitTimeoutRef.current) {
         clearTimeout(autoSubmitTimeoutRef.current)
       }
+      
+      // Force camera cleanup when leaving game page
+      if (cameraEnabled) {
+        console.log('Game page unmounting, ensuring camera cleanup')
+        // The BlinkDetector component should handle this, but let's make sure
+      }
     }
-  }, [])
+  }, [cameraEnabled])
+
+  // Cleanup when navigating away from game page
+  useEffect(() => {
+    const handleRouteChange = () => {
+      // Only disable camera if we're actually leaving the game page
+      if (window.location.pathname !== '/game') {
+        console.log('Leaving game page, disabling camera')
+        setCameraEnabled(false)
+        if (autoSubmitTimeoutRef.current) {
+          clearTimeout(autoSubmitTimeoutRef.current)
+          autoSubmitTimeoutRef.current = undefined
+        }
+      }
+    }
+
+    // Listen for route changes - less aggressive checking
+    const currentPath = window.location.pathname
+    let lastCheck = Date.now()
+    let routeCheckTimeout: NodeJS.Timeout | null = null
+
+    const checkRouteChange = () => {
+      const now = Date.now()
+      // Check every 200ms instead of 100ms to be even less aggressive
+      if (now - lastCheck >= 200) {
+        lastCheck = now
+        if (window.location.pathname !== currentPath) {
+          // Debounce route changes to avoid rapid toggling
+          if (routeCheckTimeout) clearTimeout(routeCheckTimeout)
+          routeCheckTimeout = setTimeout(() => {
+            handleRouteChange()
+          }, 500) // Wait 500ms to confirm the route change
+        }
+      }
+    }
+
+    const interval = setInterval(checkRouteChange, 200)
+
+    // Remove the visibility change handler that was causing issues
+    // The BlinkDetector handles its own cleanup appropriately
+
+    return () => {
+      clearInterval(interval)
+      if (routeCheckTimeout) clearTimeout(routeCheckTimeout)
+      // Only cleanup if actually leaving the page
+      if (window.location.pathname !== '/game') {
+        handleRouteChange()
+      }
+    }
+  }, []) // Remove cameraEnabled dependency to prevent re-running
 
   return (
-    <main className="min-h-screen bg-primary-dark">
-      <Header />
+    <main className={`min-h-screen bg-primary-dark ${isExpandedView ? 'fixed inset-0 z-50' : ''}`}>
+      {!isExpandedView && <Header />}
       
-      <section className="pt-32 pb-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              <span className="text-gradient">OptiBlink Bubble Pop</span>
-            </h1>
-            <p className="text-xl text-white/70 mb-8">
-              Blink in Morse code patterns to pop bubbles!
-            </p>
-          </div>
+      <section className={`transition-all duration-500 ${isExpandedView ? 'h-full p-0' : 'pt-32 pb-20 px-2 sm:px-4'}`}>
+        <div className={`transition-all duration-500 ${isExpandedView ? 'h-full p-0' : 'mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl'}`}>
+          {!isExpandedView && (
+            <div className="text-center mb-8">
+              <h1 className="text-5xl md:text-6xl font-bold mb-6">
+                <span className="text-gradient">OptiBlink Bubble Pop</span>
+              </h1>
+              <p className="text-xl text-white/70 mb-8">
+                Blink in Morse code patterns to pop bubbles!
+              </p>
+            </div>
+          )}
 
           {/* Game Area */}
-          <div className="bg-neutral-dark border border-neon-purple/30 rounded-xl overflow-hidden">
+          <div className={`bg-neutral-dark border border-neon-purple/30 rounded-xl ${isExpandedView ? 'h-full rounded-none overflow-y-auto' : 'overflow-hidden'}`}>
             {/* Game Stats */}
             {gameStarted && (
-              <div className="bg-neutral-darker p-4 border-b border-neon-purple/20">
-                <div className="flex justify-between items-center text-white">
-                  <div className="flex space-x-6">
+              <div className="bg-neutral-darker p-3 md:p-4 border-b border-neon-purple/20">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center text-white gap-3 md:gap-0">
+                  <div className="flex flex-wrap gap-3 md:gap-6 text-sm md:text-base">
                     <span>Score: <span className="text-neon-purple font-bold">{gameStats.score}</span></span>
                     <span>Level: <span className="text-neon-purple font-bold">{gameStats.level}</span></span>
                     <span>Lives: <span className="text-red-400 font-bold">{'❤️'.repeat(Math.max(0, lives))}</span></span>
-                    <span>Accuracy: <span className="text-neon-purple font-bold">{gameStats.accuracy}%</span></span>
+                    <span>Accuracy: <span className="text-neon-purple font-bold">{gameStats.accuracy}%</span> <span className="text-white/50 text-xs">({gameStats.bubblesPopped}/{gameStats.totalBubbles})</span></span>
                   </div>
-                  <div className="flex items-center space-x-4">
-                    <span>Current: <span className="text-yellow-400 font-mono text-lg">{currentMorse || '___'}</span></span>
+                  <div className="flex items-center space-x-2 md:space-x-4 w-full md:w-auto">
+                    <span className="text-sm md:text-base">Current: <span className="text-yellow-400 font-mono text-base md:text-lg">{currentMorse || '___'}</span></span>
                     <button 
                       onClick={checkMorseCode}
-                      className="px-3 py-1 bg-neon-purple/20 border border-neon-purple/50 rounded text-white text-xs hover:bg-neon-purple/30"
+                      className="px-3 py-2 md:px-3 md:py-1 bg-neon-purple/20 border border-neon-purple/50 rounded text-white text-sm md:text-xs hover:bg-neon-purple/30 touch-manipulation min-h-[44px]"
                     >
                       Submit
                     </button>
@@ -706,7 +740,7 @@ export default function Game() {
                           autoSubmitTimeoutRef.current = undefined
                         }
                       }}
-                      className="px-3 py-1 bg-red-500/20 border border-red-500/50 rounded text-white text-xs hover:bg-red-500/30"
+                      className="px-3 py-2 md:px-3 md:py-1 bg-red-500/20 border border-red-500/50 rounded text-white text-sm md:text-xs hover:bg-red-500/30 touch-manipulation min-h-[44px]"
                     >
                       Clear
                     </button>
@@ -719,10 +753,10 @@ export default function Game() {
             )}
 
             {/* Game Canvas */}
-            <div className="relative h-96 bg-gradient-to-b from-blue-900/20 to-purple-900/20 overflow-hidden">
-              {/* Camera Feed (small corner overlay) */}
+            <div className={`relative bg-gradient-to-b from-blue-900/20 to-purple-900/20 overflow-hidden transition-all duration-500 ${isExpandedView ? 'h-full' : 'h-96'}`}>
+              {/* Camera Feed (responsive positioning) */}
               {cameraEnabled && (
-                <div className="absolute top-4 right-4 z-10">
+                <div className="absolute top-2 right-2 md:top-4 md:right-4 z-10">
                   <BlinkDetector
                     onBlink={handleBlink}
                     isEnabled={cameraEnabled}
@@ -731,14 +765,14 @@ export default function Game() {
                   <div className="flex space-x-1 mt-1">
                     <button
                       onClick={() => handleBlink(false)}
-                      className="px-2 py-1 bg-blue-500/80 text-white text-xs rounded hover:bg-blue-600/80"
+                      className="px-2 py-1 bg-blue-500/80 text-white text-xs rounded hover:bg-blue-600/80 touch-manipulation"
                       title="Manual Short Blink (.)"
                     >
                       .
                     </button>
                     <button
                       onClick={() => handleBlink(true)}
-                      className="px-2 py-1 bg-orange-500/80 text-white text-xs rounded hover:bg-orange-600/80"
+                      className="px-2 py-1 bg-orange-500/80 text-white text-xs rounded hover:bg-orange-600/80 touch-manipulation"
                       title="Manual Long Blink (-)"
                     >
                       -
@@ -748,64 +782,58 @@ export default function Game() {
               )}
 
               {/* Bubbles */}
-              <AnimatePresence>
-                {bubbles.map(bubble => (
-                  <motion.div
-                    key={bubble.id}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    className="absolute"
-                    style={{
-                      left: `${bubble.x}%`,
-                      top: `${bubble.y}%`,
-                      width: bubble.size,
-                      height: bubble.size,
-                      transition: 'top 0.1s linear, left 0.1s linear',
-                    }}
-                  >
-                    <div className="relative w-full h-full">
-                      {/* Bubble */}
-                      <div className={`w-full h-full bg-gradient-to-br ${bubble.color.from} ${bubble.color.to} rounded-full border-2 ${bubble.color.border} flex items-center justify-center backdrop-blur-sm shadow-lg`}>
-                        <div className="text-center">
-                          <div className="text-white font-bold text-lg">{bubble.letter}</div>
-                          <div className="text-white/70 text-xs font-mono">{bubble.morse}</div>
-                        </div>
+              {bubbles.map(bubble => (
+                <div
+                  key={bubble.id}
+                  className="absolute"
+                  style={{
+                    left: `${bubble.x}%`,
+                    top: `${bubble.y}%`,
+                    width: bubble.size,
+                    height: bubble.size,
+                  }}
+                >
+                  <div className="relative w-full h-full">
+                    {/* Bubble */}
+                    <div className={`w-full h-full bg-gradient-to-br ${bubble.color.from} ${bubble.color.to} rounded-full border-2 ${bubble.color.border} flex items-center justify-center shadow-md`}>
+                      <div className="text-center">
+                        <div className="text-white font-bold text-lg">{bubble.letter}</div>
+                        <div className="text-white/70 text-xs font-mono">{bubble.morse}</div>
                       </div>
-                      {/* Bubble highlight */}
-                      <div className="absolute top-2 left-2 w-3 h-3 bg-white/40 rounded-full"></div>
                     </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+                  </div>
+                </div>
+              ))}
+
+              {/* Current Morse Code Display - fixed position for always visible */}
+              {gameStarted && (
+                <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+                  <div className="bg-black/95 rounded-lg p-2 border border-neon-purple/50 shadow-xl">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-white text-sm font-medium">Current:</span>
+                      <span className="text-yellow-400 font-mono text-xl md:text-2xl font-bold tracking-wide bg-neutral-dark/80 px-3 py-1 rounded border border-neon-purple/30">
+                        {currentMorse || '___'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Game Start Screen */}
               {!gameStarted && !gameOver && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                  <div className="text-center space-y-6">
-                    <h3 className="text-3xl font-bold text-white">Ready to Play?</h3>
-                    <p className="text-white/70 max-w-md">
-                      Enable your camera to use eye blink detection for Morse code input.
+                <div className="absolute inset-0 flex items-center justify-center bg-black/60 p-4">
+                  <div className="text-center space-y-4 md:space-y-6 max-w-md mx-auto">
+                    <h3 className="text-2xl md:text-3xl font-bold text-white">Ready to Play?</h3>
+                    <p className="text-white/70 text-sm md:text-base">
+                      Enable your camera for eye blink detection, or use keyboard controls.
                       Short blinks = dots (.), Long blinks = dashes (-)
                     </p>
-                    <div className="space-y-4">
+                    <div className="space-y-3 md:space-y-4">
                       <button
-                        onClick={initializeCamera}
-                        className="btn-secondary"
+                        onClick={initializeCameraAndStart}
+                        className="btn-primary w-full md:w-auto min-h-[44px] touch-manipulation"
                       >
-                        Try Enable Camera
-                      </button>
-                      <button
-                        onClick={startGame}
-                        className="btn-primary"
-                      >
-                        Start Game (Keyboard)
-                      </button>
-                      <button
-                        onClick={() => setShowInstructions(true)}
-                        className="btn-secondary ml-4"
-                      >
-                        Instructions
+                        Start Game
                       </button>
                     </div>
                   </div>
@@ -814,30 +842,30 @@ export default function Game() {
 
               {/* Game Over Screen */}
               {gameOver && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-                  <div className="text-center space-y-6">
-                    <h3 className="text-4xl font-bold text-red-400">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-4 z-30">
+                  <div className="text-center space-y-4 md:space-y-6 max-w-md mx-auto">
+                    <h3 className="text-3xl md:text-4xl font-bold text-red-400">
                       {gameStats.level >= 2 ? '🎉 Congratulations! 🎉' : 'Game Over!'}
                     </h3>
-                    <div className="text-white space-y-2">
+                    <div className="text-white space-y-2 text-sm md:text-base">
                       <p>Final Score: <span className="text-neon-purple font-bold">{gameStats.score}</span></p>
                       <p>Bubbles Popped: <span className="text-neon-purple font-bold">{gameStats.bubblesPopped}</span></p>
-                      <p>Accuracy: <span className="text-neon-purple font-bold">{gameStats.accuracy}%</span></p>
+                      <p>Accuracy: <span className="text-neon-purple font-bold">{gameStats.accuracy}%</span> <span className="text-white/50 text-sm">({gameStats.bubblesPopped}/{gameStats.totalBubbles} correct)</span></p>
                       <p>Level Reached: <span className="text-neon-purple font-bold">{gameStats.level}</span></p>
                       {gameStats.level >= 2 && (
-                        <p className="text-green-400 font-bold text-lg">You completed all levels!</p>
+                        <p className="text-green-400 font-bold text-base md:text-lg">You completed all levels!</p>
                       )}
                     </div>
-                    <div className="space-x-4">
+                    <div className="space-y-3 md:space-y-0 md:space-x-4 md:flex md:justify-center">
                       <button
                         onClick={startGame}
-                        className="btn-primary"
+                        className="btn-primary w-full md:w-auto min-h-[44px] touch-manipulation"
                       >
                         Play Again
                       </button>
                       <button
                         onClick={resetGame}
-                        className="btn-secondary"
+                        className="btn-secondary w-full md:w-auto min-h-[44px] touch-manipulation"
                       >
                         Main Menu
                       </button>
@@ -848,30 +876,30 @@ export default function Game() {
 
               {/* Level Complete Screen */}
               {waitingForNextLevel && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-                  <div className="text-center space-y-6">
-                    <h3 className="text-4xl font-bold text-green-400">Level {gameStats.level} Complete!</h3>
-                    <div className="text-white space-y-2">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-4 z-30">
+                  <div className="text-center space-y-4 md:space-y-6 max-w-md mx-auto">
+                    <h3 className="text-3xl md:text-4xl font-bold text-green-400">Level {gameStats.level} Complete!</h3>
+                    <div className="text-white space-y-2 text-sm md:text-base">
                       <p>Level Score: <span className="text-neon-purple font-bold">{gameStats.score}</span></p>
                       <p>Total Bubbles Popped: <span className="text-neon-purple font-bold">{gameStats.bubblesPopped}</span></p>
-                      <p>Accuracy: <span className="text-neon-purple font-bold">{gameStats.accuracy}%</span></p>
+                      <p>Accuracy: <span className="text-neon-purple font-bold">{gameStats.accuracy}%</span> <span className="text-white/50 text-sm">({gameStats.bubblesPopped}/{gameStats.totalBubbles} correct)</span></p>
                     </div>
-                    <p className="text-white/70">
+                    <p className="text-white/70 text-sm md:text-base">
                       {gameStats.level === 1
                         ? 'Ready for Level 2? Bubbles will be faster and you get fresh lives!'
                         : 'Ready for the final level? Bubbles will be even faster!'
                       }
                     </p>
-                    <div className="space-x-4">
+                    <div className="space-y-3 md:space-y-0 md:space-x-4 md:flex md:justify-center">
                       <button
                         onClick={startNextLevel}
-                        className="btn-primary"
+                        className="btn-primary w-full md:w-auto min-h-[44px] touch-manipulation"
                       >
                         Start Level {gameStats.level + 1}
                       </button>
                       <button
                         onClick={resetGame}
-                        className="btn-secondary"
+                        className="btn-secondary w-full md:w-auto min-h-[44px] touch-manipulation"
                       >
                         Main Menu
                       </button>
@@ -883,73 +911,55 @@ export default function Game() {
 
             {/* Controls Help */}
             {gameStarted && (
-              <div className="p-4 bg-neutral-darker/50 border-t border-neon-purple/20">
-                <div className="text-white/70 text-sm text-center">
-                  <span><strong>Controls:</strong> Space = Dot (.) • Shift+Space = Dash (-) • Enter = Submit • Backspace = Delete</span>
-                  {cameraEnabled && <span> • <strong>OR</strong> Short Blink = Dot • Long Blink = Dash</span>}
+              <div className="p-3 md:p-4 bg-neutral-darker/50 border-t border-neon-purple/20">
+                <div className="text-white/70 text-xs md:text-sm text-center">
+                  <span><strong>Controls:</strong> Space = Dot (.) • Shift+Space = Dash (-) • Enter = Submit • Backspace = Delete • Escape = Exit Fullscreen</span>
+                  {cameraEnabled && <span className="block md:inline mt-1 md:mt-0 md:ml-2"> • <strong>OR</strong> Short Blink = Dot • Long Blink = Dash</span>}
                 </div>
               </div>
             )}
 
-            {/* Morse Code Reference */}
-            {gameStarted && (
-              <div className="p-4 bg-neutral-darker/50">
-                <details className="text-white">
-                  <summary className="cursor-pointer text-neon-purple">Morse Code Reference</summary>
-                  <div className="mt-2 grid grid-cols-6 md:grid-cols-13 gap-2 text-sm">
-                    {Object.entries(MORSE_CODE).map(([letter, code]) => (
-                      <div key={letter} className="text-center">
-                        <div className="font-bold">{letter}</div>
-                        <div className="text-white/70 font-mono text-xs">{code}</div>
-                      </div>
-                    ))}
-                  </div>
-                </details>
-              </div>
-            )}
-          </div>
-
-          {/* Instructions Modal */}
-          {showInstructions && (
-            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-              <div className="bg-neutral-dark border border-neon-purple/30 rounded-xl p-8 max-w-2xl mx-4">
-                <h3 className="text-2xl font-bold text-white mb-4">How to Play</h3>
-                <div className="space-y-4 text-white/80">
-                  <p><strong>🎯 Objective:</strong> Pop bubbles by entering the correct Morse code for each letter</p>
-                  <p><strong>👁️ Eye Blink Controls (Camera Enabled):</strong></p>
-                  <ul className="ml-4 space-y-1">
-                    <li>• <strong>Short Blink</strong> (quick) = Dot (.)</li>
-                    <li>• <strong>Long Blink</strong> (hold for 400ms+) = Dash (-)</li>
-                    <li>• <strong>Auto-submit</strong> after 2 seconds of no blinking</li>
-                  </ul>
-                  <p><strong>⌨️ Keyboard Backup (Camera Disabled):</strong></p>
-                  <ul className="ml-4 space-y-1">
-                    <li>• <kbd className="bg-gray-700 px-2 py-1 rounded">Space</kbd> = Dot (.)</li>
-                    <li>• <kbd className="bg-gray-700 px-2 py-1 rounded">Shift + Space</kbd> = Dash (-)</li>
-                    <li>• <kbd className="bg-gray-700 px-2 py-1 rounded">Enter</kbd> = Submit Morse code</li>
-                  </ul>
-                  <p><strong>🎮 Gameplay:</strong></p>
-                  <ul className="ml-4 space-y-1">
-                    <li>• Bubbles fall from the top with letters and their Morse codes</li>
-                    <li>• Enter the correct Morse pattern to pop the bubble</li>
-                    <li>• You lose a life if a bubble reaches the bottom or you enter wrong code</li>
-                    <li>• Game ends when you run out of lives</li>
-                  </ul>
-                  <p><strong>📈 Scoring:</strong> Earn 10 points for each bubble popped. Complete level 1 at 50 points (5 bubbles), then level 2 (final level) resets score to 0 and gives you 3 fresh lives to reach 100 points (10 bubbles) and win!</p>
+            {/* Morse Code Reference - Always visible */}
+            <div className="p-3 md:p-4 bg-neutral-darker/50 flex items-center justify-between border-t border-neon-purple/20">
+              <details className="text-white flex-1">
+                <summary className="cursor-pointer text-neon-purple text-sm md:text-base touch-manipulation">Morse Code Reference</summary>
+                <div className="mt-2 grid grid-cols-6 md:grid-cols-13 gap-2 text-sm">
+                  {Object.entries(MORSE_CODE).map(([letter, code]) => (
+                    <div key={letter} className="text-center p-1 md:p-2">
+                      <div className="font-bold text-base md:text-lg">{letter}</div>
+                      <div className="text-white/70 font-mono text-xs md:text-sm">{code}</div>
+                    </div>
+                  ))}
                 </div>
+              </details>
+              
+              {/* Info Button with Hover Instructions */}
+              <div className="relative ml-4 group">
                 <button
-                  onClick={() => setShowInstructions(false)}
-                  className="btn-primary mt-6"
+                  className="w-8 h-8 bg-neon-purple/20 border border-neon-purple/50 rounded-full flex items-center justify-center text-neon-purple hover:bg-neon-purple/30 transition-colors touch-manipulation"
+                  title="How to Play"
                 >
-                  Got it!
+                  <span className="text-sm font-bold">i</span>
                 </button>
+                
+                {/* Hover Tooltip */}
+                <div className="absolute bottom-full right-0 mb-2 w-80 p-4 bg-neutral-dark border border-neon-purple/30 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 pointer-events-none">
+                  <div className="text-white text-sm space-y-2">
+                    <p><strong>🎯 Objective:</strong> Pop bubbles by entering correct Morse code</p>
+                    <p><strong>👁️ Camera:</strong> Short blink = dot (.), Long blink = dash (-)</p>
+                    <p><strong>⌨️ Keyboard:</strong> Space = dot, Shift+Space = dash, Enter = submit</p>
+                    <p><strong>📈 Scoring:</strong> 10 points per bubble, level up at 50 points</p>
+                  </div>
+                </div>
               </div>
             </div>
-          )}
+          </div>
+
         </div>
+
       </section>
 
-      <Footer />
+      {!isExpandedView && <Footer />}
     </main>
   )
 }

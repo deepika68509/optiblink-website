@@ -6,8 +6,8 @@ const nextConfig = {
     // domains: ['example.com'],
     unoptimized: false,
   },
-  // Enable React strict mode for better development experience
-  reactStrictMode: true,
+  // Disable React strict mode to prevent double rendering and improve performance
+  reactStrictMode: false,
   // Improve production performance
   swcMinify: true,
   // Handle trailing slashes consistently

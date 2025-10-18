@@ -17,42 +17,108 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
   const [faceMesh, setFaceMesh] = useState<any>(null)
   const [camera, setCamera] = useState<any>(null)
   const [currentEAR, setCurrentEAR] = useState(0)
-  const [baselineEAR, setBaselineEAR] = useState(0)
-  const [isCalibrated, setIsCalibrated] = useState(false)
-  const [calibrationReadings, setCalibrationReadings] = useState<number[]>([])
-  const calibrationReadingsRef = useRef<number[]>([])
-  const calibrationCompletedRef = useRef(false) // Prevent multiple calibration completions
-  const baselineEARRef = useRef(0) // Synchronous baseline access
   
   // Blink duration tracking
   const blinkStartTimeRef = useRef<number | null>(null)
   const isBlinkingRef = useRef(false)
   
   const blinkTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const calibrationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (isEnabled && !stream) {
       initializeCamera()
     }
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop())
-      }
-      if (camera) {
-        camera.stop()
-      }
-      if (blinkTimeoutRef.current) {
-        clearTimeout(blinkTimeoutRef.current)
-      }
-      if (calibrationTimeoutRef.current) {
-        clearTimeout(calibrationTimeoutRef.current)
-      }
+      // Cleanup when component unmounts or isEnabled changes
+      cleanupCamera()
     }
-  }, [isEnabled, stream])
+  }, [isEnabled])
+
+  // Cleanup function
+  const cleanupCamera = useCallback(() => {
+    console.log('BlinkDetector: Cleaning up camera resources')
+    
+    // Stop current stream tracks
+    if (stream) {
+      stream.getTracks().forEach(track => {
+        console.log('Stopping track:', track.label)
+        track.stop()
+      })
+      setStream(null)
+    }
+    
+    // Also try to stop any other video tracks that might be active
+    try {
+      const allVideoTracks = document.querySelectorAll('video')
+      allVideoTracks.forEach(video => {
+        if (video.srcObject) {
+          const tracks = (video.srcObject as MediaStream).getTracks()
+          tracks.forEach(track => {
+            if (track.kind === 'video' && track.readyState === 'live') {
+              console.log('Stopping additional video track:', track.label)
+              track.stop()
+            }
+          })
+          video.srcObject = null
+        }
+      })
+    } catch (error) {
+      // Ignore cleanup errors
+    }
+    
+    // Stop MediaPipe camera
+    if (camera) {
+      camera.stop()
+      setCamera(null)
+    }
+    
+    // Clear video element
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    
+    // Clear timeouts
+    if (blinkTimeoutRef.current) {
+      clearTimeout(blinkTimeoutRef.current)
+      blinkTimeoutRef.current = null
+    }
+    
+    // Reset state
+    setIsDetecting(false)
+    setCurrentEAR(0)
+    setBlinkCount(0)
+    setLastBlinkDetected(false)
+    isBlinkingRef.current = false
+    blinkStartTimeRef.current = null
+  }, [stream, camera])
+
+  // Stop camera immediately when disabled
+  useEffect(() => {
+    if (!isEnabled) {
+      console.log('BlinkDetector: Camera disabled, immediate cleanup')
+      cleanupCamera()
+    }
+  }, [isEnabled, cleanupCamera])
+
+  // Cleanup on page unload and visibility changes - simplified
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      console.log('BlinkDetector: Page unloading, cleaning up camera')
+      cleanupCamera()
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      // Don't cleanup on component unmount if we're just re-rendering
+      // The cleanup will happen when isEnabled becomes false
+    }
+  }, []) // Remove cleanupCamera dependency to prevent re-running
 
   const initializeCamera = async () => {
     try {
+      console.log('BlinkDetector: Requesting camera access...')
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: 320,
@@ -62,26 +128,42 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
         },
         audio: false
       })
+      console.log('BlinkDetector: Camera access granted, stream obtained')
       setStream(mediaStream)
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream
-        videoRef.current.onloadedmetadata = () => {
-          initializeFaceMesh()
+        videoRef.current.onloadedmetadata = async () => {
+          try {
+            console.log('BlinkDetector: Video metadata loaded, attempting to play')
+            await videoRef.current?.play()
+            console.log('BlinkDetector: Video playing successfully')
+            initializeFaceMesh()
+          } catch (error) {
+            console.error('BlinkDetector: Error playing video:', error)
+          }
         }
+        
+        // Fallback: try to initialize after a short delay if metadata doesn't load
+        setTimeout(() => {
+          if (videoRef.current && !faceMesh) {
+            console.log('BlinkDetector: Fallback initialization after delay')
+            initializeFaceMesh()
+          }
+        }, 1000)
       }
     } catch (error) {
-      console.error('Error accessing camera:', error)
+      console.error('BlinkDetector: Error accessing camera:', error)
     }
   }
 
   const initializeFaceMesh = async () => {
     try {
-      console.log('Initializing MediaPipe Face Mesh for blink detection...')
-      
+      console.log('BlinkDetector: Initializing MediaPipe FaceMesh...')
       const [{ FaceMesh }, { Camera }] = await Promise.all([
         import('@mediapipe/face_mesh'),
         import('@mediapipe/camera_utils')
       ])
+      console.log('BlinkDetector: MediaPipe modules loaded successfully')
       
       const mesh = new FaceMesh({
         locateFile: (file) => {
@@ -92,14 +174,16 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
       mesh.setOptions({
         maxNumFaces: 1,
         refineLandmarks: true, // Better eye landmarks
-        minDetectionConfidence: 0.3, // Lower threshold for calibration
-        minTrackingConfidence: 0.3   // Lower threshold for calibration
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
       })
 
       mesh.onResults(onResults)
       setFaceMesh(mesh)
+      console.log('BlinkDetector: FaceMesh configured and set up')
 
       if (videoRef.current) {
+        console.log('BlinkDetector: Creating MediaPipe camera...')
         const cam = new Camera(videoRef.current, {
           onFrame: async () => {
             try {
@@ -117,21 +201,12 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
         cam.start()
         setCamera(cam)
         setIsDetecting(true)
-        
-        // Start calibration phase
-        console.log('Starting EAR calibration...')
-        calibrationReadingsRef.current = [] // Reset ref
-        calibrationCompletedRef.current = false // Reset completion flag
-        setCalibrationReadings([]) // Reset state
-        // Reset blink tracking
-        isBlinkingRef.current = false
-        blinkStartTimeRef.current = null
-        calibrationTimeoutRef.current = setTimeout(() => {
-          finishCalibration()
-        }, 5000) // Increased to 5 seconds calibration
+        console.log('BlinkDetector: MediaPipe camera started, detection active')
       }
     } catch (error) {
-      console.error('Failed to initialize MediaPipe:', error)
+      console.error('BlinkDetector: Failed to initialize MediaPipe:', error)
+      const err = error as Error
+      console.error('Error details:', err.message, err.stack)
     }
   }
 
@@ -142,29 +217,11 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
       
       setCurrentEAR(ear)
       
-      if (!calibrationCompletedRef.current) {
-        // Collect calibration readings - update both state and ref
-        const newReadings = [...calibrationReadingsRef.current, ear].slice(-50)
-        calibrationReadingsRef.current = newReadings
-        setCalibrationReadings(newReadings)
-        
-        // Only log during calibration
-        if (newReadings.length % 10 === 0) { // Log every 10th reading to reduce spam
-          console.log(`Calibration reading ${newReadings.length}/50: EAR=${ear.toFixed(3)}`)
-        }
-        
-        // Auto-finish calibration if we have enough readings
-        if (newReadings.length >= 50 && calibrationTimeoutRef.current) {
-          clearTimeout(calibrationTimeoutRef.current)
-          setTimeout(finishCalibration, 100) // Small delay to ensure state updates
-        }
-      } else {
-        // Detect blinks using calibrated baseline
-        detectBlink(ear)
-      }
-    } else if (!isCalibrated) {
-      // Only log face detection issues during calibration
-      console.log('No face detected during calibration')
+      // Detect blinks using simple threshold
+      detectBlink(ear)
+    } else {
+      // No face detected
+      console.log('BlinkDetector: No face detected in frame')
     }
   }, [])
 
@@ -216,65 +273,10 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
     }
   }
 
-  const finishCalibration = () => {
-    // Prevent multiple calibration completions
-    if (calibrationCompletedRef.current) return
-    
-    // Clear the timeout if it's still running
-    if (calibrationTimeoutRef.current) {
-      clearTimeout(calibrationTimeoutRef.current)
-      calibrationTimeoutRef.current = null
-    }
-    
-    const readings = calibrationReadingsRef.current
-    console.log(`Finishing calibration with ${readings.length} readings`)
-    
-    if (readings.length >= 5) { // Accept as few as 5 readings
-      // Calculate baseline EAR from calibration readings
-      const sortedReadings = [...readings].sort((a, b) => a - b)
-      // Use median of middle 50% to avoid outliers
-      const middle50 = sortedReadings.slice(
-        Math.floor(sortedReadings.length * 0.25), 
-        Math.floor(sortedReadings.length * 0.75)
-      )
-      const baseline = middle50.length > 0 
-        ? middle50.reduce((sum, val) => sum + val, 0) / middle50.length
-        : sortedReadings[Math.floor(sortedReadings.length / 2)] // Fallback to median
-      
-      setBaselineEAR(baseline)
-      baselineEARRef.current = baseline // Set ref synchronously
-      setIsCalibrated(true)
-      calibrationCompletedRef.current = true // Mark as completed
-      console.log(`✅ Calibration complete! Baseline EAR: ${baseline.toFixed(3)} from ${readings.length} readings`)
-    } else {
-      console.log(`❌ Calibration failed - only ${readings.length} readings (need 5+)`)
-      // Use default baseline based on any readings we got
-      const fallbackBaseline = readings.length > 0 
-        ? readings.reduce((sum, val) => sum + val, 0) / readings.length
-        : 0.25
-      setBaselineEAR(fallbackBaseline)
-      baselineEARRef.current = fallbackBaseline // Set ref synchronously
-      setIsCalibrated(true)
-      calibrationCompletedRef.current = true // Mark as completed even with fallback
-      console.log(`⚠️ Using fallback baseline EAR: ${fallbackBaseline.toFixed(3)}`)
-    }
-  }
-
   const detectBlink = (currentEar: number) => {
-    if (!calibrationCompletedRef.current || baselineEARRef.current === 0) {
-      console.log('Blink detection skipped - not calibrated or no baseline')
-      return
-    }
+    const BLINK_THRESHOLD = 0.25 // Simple threshold for blink detection
 
-    // Calculate how much the EAR has dropped from baseline
-    const earDrop = baselineEARRef.current - currentEar
-    const earRatio = currentEar / baselineEARRef.current
-
-    // Very sensitive blink detection thresholds for testing
-    const BLINK_THRESHOLD_RATIO = 0.4  // EAR drops to 40% of baseline (even more sensitive)
-    const BLINK_THRESHOLD_DROP = 0.05   // Or drops by 0.05 absolute (even more sensitive)
-    
-    const isBlinkFrame = earRatio < BLINK_THRESHOLD_RATIO || earDrop > BLINK_THRESHOLD_DROP
+    const isBlinkFrame = currentEar < BLINK_THRESHOLD
     const currentTime = Date.now()
 
     if (isBlinkFrame) {
@@ -282,9 +284,9 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
       if (!isBlinkingRef.current) {
         // Start of a new blink
         isBlinkingRef.current = true
-        blinkStartTimeRef.current = currentTime
+        blinkStartTimeRef.current = Date.now()
         setLastBlinkDetected(true) // Visual indicator
-        console.log(`👁️ BLINK START: EAR=${currentEar.toFixed(3)}, Baseline=${baselineEARRef.current.toFixed(3)}`)
+        console.log(`👁️ BLINK START: EAR=${currentEar.toFixed(3)}`)
       }
       // Continue existing blink - no action needed, just track duration
     } else {
@@ -293,17 +295,17 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
         // End of blink - calculate duration
         const blinkDuration = currentTime - blinkStartTimeRef.current
         const isLong = blinkDuration >= 400 // 400ms = long blink (dash)
-        
+
         // Reset blink state
         isBlinkingRef.current = false
         blinkStartTimeRef.current = null
-        
+
         // Count the blink
         setBlinkCount(prev => prev + 1)
-        
+
         console.log(`🔥 BLINK END! Duration: ${blinkDuration}ms, Long: ${isLong} (${isLong ? 'DASH' : 'DOT'})`)
         onBlink(isLong)
-        
+
         // Reset visual indicator after a delay
         if (blinkTimeoutRef.current) {
           clearTimeout(blinkTimeoutRef.current)
@@ -314,22 +316,23 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
       }
     }
 
-    // More frequent debug logging to see EAR changes
-    if (Math.random() < 0.02) { // Log 2% of frames (reduced from 10%)
-      console.log(`EAR: ${currentEar.toFixed(3)}, Baseline: ${baselineEARRef.current.toFixed(3)}, Ratio: ${earRatio.toFixed(2)}, Drop: ${earDrop.toFixed(3)}, Blinking: ${isBlinkingRef.current}`)
+    // Debug logging
+    if (Math.random() < 0.05) { // Log 5% of frames
+      console.log(`EAR: ${currentEar.toFixed(3)}, Blinking: ${isBlinkingRef.current}`)
     }
   }
 
   return (
     <div className="flex flex-col space-y-2">
       {/* Camera Feed */}
-      <div className="relative w-32 h-24 border border-neon-purple/50 rounded-lg overflow-hidden">
+      <div className="relative w-32 h-24 border border-neon-purple/50 rounded-lg overflow-hidden bg-black">
         <video
           ref={videoRef}
           autoPlay
           muted
           playsInline
           className={`w-full h-full object-cover transform scale-x-[-1] ${lastBlinkDetected ? 'ring-2 ring-green-400' : ''}`}
+          style={{ backgroundColor: 'black', minWidth: '128px', minHeight: '96px' }}
         />
         <canvas
           ref={canvasRef}
@@ -340,42 +343,24 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
             <div className="text-green-400 font-bold text-sm">BLINK!</div>
           </div>
         )}
+        {/* Debug info overlay */}
+        <div className="absolute top-0 left-0 text-xs text-white bg-black/50 px-1">
+          {videoRef.current?.srcObject ? 'ON' : 'OFF'} | {isDetecting ? 'DETECT' : 'INIT'}
+        </div>
+        <div className="absolute bottom-0 left-0 text-xs text-white bg-black/50 px-1">
+          EAR: {currentEAR.toFixed(2)}
+        </div>
       </div>
       
       {/* Status Info Below Camera */}
       <div className="w-32 space-y-1">
         <div className="text-xs text-white bg-black/50 px-2 py-1 rounded text-center">
-          {!calibrationCompletedRef.current ? 'Calibrating...' : 
-           isDetecting ? 'Detecting (EAR)' : 'Camera Active'} | Blinks: {blinkCount}
+          {videoRef.current?.srcObject ? 'Detecting' : 'Camera Off'} | Blinks: {blinkCount}
         </div>
         
         <div className="text-xs text-white bg-black/50 px-2 py-1 rounded text-center">
-          EAR: {currentEAR.toFixed(2)} | Base: {baselineEAR.toFixed(2)}
+          EAR: {currentEAR.toFixed(2)}
         </div>
-        
-        {/* Calibration progress */}
-        {!calibrationCompletedRef.current && (
-          <div className="bg-black/50 rounded px-2 py-1">
-            <div className="text-xs text-white mb-1 text-center">Calibrating eye position...</div>
-            <div className="text-xs text-white/70 mb-1 text-center">
-              Readings: {calibrationReadings.length}/50
-            </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
-              <div 
-                className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(100, (calibrationReadings.length / 50) * 100)}%` }}
-              ></div>
-            </div>
-            {calibrationReadings.length >= 5 && (
-              <button
-                onClick={finishCalibration}
-                className="w-full mt-2 px-2 py-1 bg-green-600/80 text-white text-xs rounded hover:bg-green-700/80"
-              >
-                Force Calibrate ({calibrationReadings.length} readings)
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </div>
   )

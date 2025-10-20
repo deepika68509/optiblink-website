@@ -101,7 +101,7 @@ export default function Header() {
 
             {/* CTA Button - Hidden on mobile and tablet */}
             <div className="hidden lg:block">
-              <Link href="/#download" className="btn-primary">
+              <Link href="https://github.com/deepika68509/optiblink-website/releases/download/v1/optiblink_standalone.exe" className="btn-primary">
                 Download Now
               </Link>
             </div>

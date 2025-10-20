@@ -9,15 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@mediapipe/camera_utils": "^0.3.1675466862",
+    "@mediapipe/drawing_utils": "^0.3.1675466124",
+    "@mediapipe/face_mesh": "^0.4.1633559619",
     "@vercel/analytics": "^1.5.0",
     "framer-motion": "^10.18.0",
+    "gsap": "^3.11.5",
     "lottie-react": "^2.4.1",
     "next": "^14.2.33",
     "react": "^18",
-    "react-dom": "^18",
-    "@mediapipe/camera_utils": "^0.3.1675466862",
-    "@mediapipe/face_mesh": "^0.4.1633559619",
-    "gsap": "^3.11.5"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",

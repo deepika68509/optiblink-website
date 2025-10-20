@@ -8,6 +8,14 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import eyeBlinkingAnimation from '../../public/assets/icons/eye-blinking.json'
 
+import { useRef } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger)
+}
+
 // Typewriter Animation Component
 const TypewriterSequence = () => {
   const phrases = [
@@ -137,6 +145,9 @@ const MorseTypewriter = () => {
 }
 
 export default function Home() {
+  // Feature Carousel refs
+  const featureSectionRef = useRef(null)
+  const featureCarouselRef = useRef(null)
   const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null)
 
   const { scrollYProgress } = useScroll()
@@ -232,12 +243,112 @@ export default function Home() {
 
   const [morseRows, setMorseRows] = useState<string[]>([])
 
+
   useEffect(() => {
     const rows = Array.from({ length: 14 }, () =>
       Array.from({ length: 40 }, () => (Math.random() < 0.6 ? '·' : '—')).join(' ')
     )
     setMorseRows(rows)
   }, [])
+
+  // Feature Carousel GSAP horizontal scroll (responsive for all screen sizes)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !featureSectionRef.current || !featureCarouselRef.current) return;
+
+    const setupScrollTrigger = () => {
+      // Clean up previous triggers
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+
+      const section = featureSectionRef.current;
+      const carousel = featureCarouselRef.current;
+      if (!section || !carousel) return;
+
+      const slides = gsap.utils.toArray('.feature-slide') as HTMLElement[];
+      
+      // Calculate total width based on actual slide widths
+      let totalWidth = 0;
+      slides.forEach(slide => {
+        totalWidth += slide.offsetWidth;
+      });
+      
+      // Fallback if slides haven't rendered yet
+      if (totalWidth === 0) {
+        totalWidth = slides.length * window.innerWidth;
+      }
+
+      // Calculate the scroll distance - total width minus viewport width
+      const scrollDistance = totalWidth - window.innerWidth;
+
+      const scrollTween = gsap.to(carousel, {
+        x: () => -scrollDistance,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          pin: true,
+          scrub: 1,
+          start: 'top top',
+          end: () => `+=${scrollDistance}`,
+          invalidateOnRefresh: true,
+        }
+      });
+
+      slides.forEach((slide, i) => {
+        const image = slide.querySelector('.feature-image');
+        const content = slide.querySelector('.feature-content');
+        const title = slide.querySelector('.feature-title');
+        const desc = slide.querySelector('.feature-description');
+        const details = slide.querySelector('.feature-details');
+        const icon = slide.querySelector('.feature-icon');
+
+        if (image) {
+          gsap.fromTo(image, 
+            { scale: 1.2, x: -50 },
+            {
+              scale: 1,
+              x: 0,
+              scrollTrigger: {
+                trigger: slide,
+                containerAnimation: scrollTween,
+                start: 'left right',
+                end: 'center center',
+                scrub: 1,
+              }
+            }
+          );
+        }
+
+        const contentTimeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: slide,
+            containerAnimation: scrollTween,
+            start: 'left center',
+            end: 'center center',
+            scrub: 1,
+          }
+        });
+
+        if (icon) contentTimeline.fromTo(icon, { scale: 0, rotation: -180, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.5 });
+        if (title) contentTimeline.fromTo(title, { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, '-=0.3');
+        if (desc) contentTimeline.fromTo(desc, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, '-=0.3');
+        if (details) contentTimeline.fromTo(details, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, '-=0.3');
+      });
+    };
+
+    // Initial setup
+    setupScrollTrigger();
+
+    // Recalculate on window resize for responsive behavior
+    const handleResize = () => {
+      setupScrollTrigger();
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   return (
     <main className="min-h-screen relative">
@@ -342,7 +453,14 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: 'easeOut', delay: 0.45 }}
             >
-              <button className="btn-primary text-lg px-8 py-4">Download .exe</button>
+              <Link 
+                href="https://github.com/deepika68509/optiblink-website/releases/download/v1/optiblink_standalone.exe"
+                className="btn-primary text-lg px-8 py-4"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Download .exe
+              </Link>
             </motion.div>
           </motion.div>
         </motion.section>
@@ -642,57 +760,185 @@ export default function Home() {
               <p className="text-white/70 mb-6 text-lg">
                 Ready to experience the future of communication?
               </p>
-              <button 
+              <Link 
+                href="https://github.com/deepika68509/optiblink-website/releases/download/v1/optiblink_standalone.exe"
                 className="btn-primary text-lg px-8 py-4"
-                onClick={() => {
-                  window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                  })
-                }}
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 Get Started Now
-              </button>
+              </Link>
             </div>
           </motion.div>
         </motion.section>
 
-        {/* Video Demo Section (mid layer) */}
-        <motion.section className="py-0 relative overflow-hidden" style={{ y: yMedium }}>
-          <motion.div
-            className="w-full"
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.7, ease: 'easeOut' }}
+        {/* Feature Carousel Section */}
+        <section id="how-it-works" ref={featureSectionRef} className="relative overflow-x-hidden bg-primary-dark">
+          <div
+            ref={featureCarouselRef}
+            className="flex flex-row w-max flex-nowrap"
+            style={{ flexDirection: undefined, flexWrap: undefined }}
           >
-            {/* Demo Video banner (full-width and full-height) */}
-            <div className="w-full">
-              <div className="relative w-full overflow-hidden">
-                <div className="relative w-full bg-black" style={{ height: '100vh' }}>
-                  <video
-                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    style={{ 
-                      outline: 'none',
-                      border: 'none'
-                    }}
-                    onContextMenu={(e) => e.preventDefault()}
-                  >
-                    <source src="/assets/videos/Assistive_Video_Blinking_to_Morse_Code.mp4" type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                  
-                  {/* Clean overlay - no visible elements */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-black/10 pointer-events-none"></div>
+            {[{
+              id: 1,
+              title: "System Initialization",
+              description: "OptiBlink launches with a quick automatic setup that calibrates to your unique eye patterns in seconds.",
+              details: "The initialization process ensures the system is perfectly tuned to your needs.",
+              image: "/assets/images/initialization.webp",
+              icon: "🚀",
+              color: "from-blue-500/20 to-cyan-500/20"
+            },
+            {
+              id: 2,
+              title: "Eye Blink Detection",
+              description: "Advanced algorithms detect eye blinks with high accuracy, distinguishing intentional blinks from natural movements.",
+              details: "Uses MediaPipe to adapt to your unique patterns in different lighting conditions.",
+              image: "/assets/images/detection.webp",
+              icon: "👁️",
+              color: "from-purple-500/20 to-pink-500/20"
+            },
+            {
+              id: 3,
+              title: "Self-Calibration",
+              description: "Automatically calibrates blink thresholds for different users and lighting conditions.",
+              details: "System adapts continuously. Press R anytime to recalibrate.",
+              image: "/assets/images/calibration.webp",
+              icon: "⚙️",
+              color: "from-indigo-500/20 to-purple-500/20"
+            },
+            {
+              id: 4,
+              title: "Morse Code Conversion",
+              description: "Convert eye movements into Morse code patterns. Short blinks create dots, longer blinks create dashes.",
+              details: "System converts blink patterns into Morse code characters in real time.",
+              image: "/assets/images/convertion.webp",
+              icon: "📡",
+              color: "from-yellow-500/20 to-orange-500/20"
+            },
+            {
+              id: 5,
+              title: "Smart Auto-completion",
+              description: "Intelligent word prediction powered by machine learning accelerates your communication.",
+              details: "Learns your vocabulary and writing patterns for accurate suggestions.",
+              image: "/assets/images/auto_suggestions.webp",
+              icon: "🤖",
+              color: "from-green-500/20 to-emerald-500/20"
+            },
+            {
+              id: 6,
+              title: "Text-to-Speech",
+              description: "Convert decoded text to natural speech for audible communication.",
+              details: "Eye blinks are converted into text and read aloud using built-in TTS.",
+              image: "/assets/images/TTS.webp",
+              icon: "🔊",
+              color: "from-red-500/20 to-rose-500/20"
+            },
+            {
+              id: 7,
+              title: "Smart Sleep Mode",
+              description: "Sleep mode activates when eyes are closed for 5 seconds. Wake with the same gesture.",
+              details: "Preserves battery and prevents accidental inputs during rest.",
+              image: "/assets/images/sleep_mode.webp",
+              icon: "💤",
+              color: "from-slate-500/20 to-gray-500/20"
+            },
+            {
+              id: 8,
+              title: "Emergency SOS",
+              description: "Instantly trigger emergency alerts to contacts via call and WhatsApp message.",
+              details: "Designed for critical situations - help is just a blink away.",
+              image: "/assets/images/emergency.webp",
+              icon: "🚨",
+              color: "from-red-600/20 to-orange-600/20"
+            }].map((feature, index, features) => (
+              <div 
+                key={feature.id}
+                className="feature-slide w-screen h-screen flex-shrink-0 relative"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-30`}></div>
+                <div className="relative h-full flex flex-col md:flex-row">
+                  <div className="w-full md:w-[55%] lg:w-[70%] relative overflow-hidden h-[60vh] md:h-full">
+                    <div className="feature-image absolute inset-0">
+                      <img 
+                        src={feature.image}
+                        alt={feature.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                          const parent = e.currentTarget.parentElement
+                          if (parent) {
+                            parent.style.background = `linear-gradient(135deg, rgba(164, 0, 171, 0.3), rgba(114, 0, 118, 0.3))`
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
+                      <div className="absolute bottom-4 left-4 md:bottom-10 md:left-10">
+                        <div className="text-5xl md:text-9xl font-bold text-white/10">
+                          {feature.id}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-full md:w-[45%] lg:w-[30%] relative bg-gradient-to-br from-neutral-darker/95 to-neutral-dark/90 backdrop-blur-md md:border-l border-white/10 flex items-center h-[40vh] md:h-full overflow-y-auto">
+                    <div className="feature-content w-full flex flex-col justify-center p-6 md:p-10 space-y-3 md:space-y-6">
+                      <div className="feature-icon mb-1 md:mb-0">
+                        <div className="w-12 h-12 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-neon-purple to-accent-purple flex items-center justify-center text-2xl md:text-4xl shadow-2xl">
+                          {feature.icon}
+                        </div>
+                      </div>
+                      <div className="inline-block">
+                        <span className="px-3 py-1 md:px-4 md:py-2 bg-neon-purple/20 text-neon-purple rounded-full text-xs md:text-sm font-semibold">
+                          Feature {feature.id} of {features.length}
+                        </span>
+                      </div>
+                      <div className="feature-title">
+                        <h3 className="text-xl md:text-4xl font-bold text-white mb-1 md:mb-2 leading-tight">
+                          {feature.title}
+                        </h3>
+                        <div className="w-10 md:w-20 h-1 bg-gradient-to-r from-neon-purple to-accent-purple rounded-full"></div>
+                      </div>
+                      <p className="feature-description text-white/80 text-sm md:text-lg leading-relaxed">
+                        {feature.description}
+                      </p>
+                      <div className="feature-details hidden md:block">
+                        <div className="bg-black/30 rounded-xl p-3 md:p-5 border border-white/10">
+                          <div className="flex items-start gap-2 md:gap-3 mb-1 md:mb-2">
+                            <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-neon-purple/20 flex items-center justify-center flex-shrink-0 mt-1">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3 md:w-4 md:h-4 text-neon-purple">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                              </svg>
+                            </div>
+                            <p className="text-white/70 text-xs md:text-sm leading-relaxed">
+                              {feature.details}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 md:gap-2">
+                        {features.map((_, idx) => (
+                          <div 
+                            key={idx}
+                            className={`h-1 rounded-full transition-all duration-300 ${
+                              idx === index ? 'w-4 md:w-8 bg-neon-purple' : 'w-1.5 md:w-2 bg-white/20'
+                            }`}
+                          ></div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                {index === 0 && (
+                  <div className="absolute bottom-4 md:bottom-10 left-1/2 transform -translate-x-1/2 text-white/60 text-xs md:text-sm font-medium flex flex-col items-center animate-bounce">
+                    <span className="mb-1 md:mb-2">Scroll to explore →</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 md:w-6 md:h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                    </svg>
+                  </div>
+                )}
               </div>
-            </div>
-          </motion.div>
-        </motion.section>
+            ))}
+          </div>
+        </section>
 
         {/* FAQ Section (slow layer) */}
         <motion.section id="faq" className="py-20 relative overflow-hidden" style={{ y: ySlow }}>

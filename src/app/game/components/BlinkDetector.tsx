@@ -17,6 +17,7 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
   const [faceMesh, setFaceMesh] = useState<any>(null)
   const [camera, setCamera] = useState<any>(null)
   const [currentEAR, setCurrentEAR] = useState(0)
+  const [scriptsLoaded, setScriptsLoaded] = useState(false)
   
   // Blink duration tracking
   const blinkStartTimeRef = useRef<number | null>(null)
@@ -24,15 +25,59 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
   
   const blinkTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Load MediaPipe scripts from CDN
   useEffect(() => {
-    if (isEnabled && !stream) {
+    const loadScripts = async () => {
+      if (typeof window === 'undefined' || scriptsLoaded) return
+
+      try {
+        // Check if scripts are already loaded
+        if ((window as any).FaceMesh && (window as any).Camera) {
+          console.log('MediaPipe scripts already loaded')
+          setScriptsLoaded(true)
+          return
+        }
+
+        console.log('Loading MediaPipe scripts from CDN...')
+        
+        // Load Face Mesh script
+        await new Promise((resolve, reject) => {
+          const script1 = document.createElement('script')
+          script1.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js'
+          script1.crossOrigin = 'anonymous'
+          script1.onload = resolve
+          script1.onerror = reject
+          document.head.appendChild(script1)
+        })
+
+        // Load Camera Utils script
+        await new Promise((resolve, reject) => {
+          const script2 = document.createElement('script')
+          script2.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js'
+          script2.crossOrigin = 'anonymous'
+          script2.onload = resolve
+          script2.onerror = reject
+          document.head.appendChild(script2)
+        })
+
+        console.log('MediaPipe scripts loaded successfully')
+        setScriptsLoaded(true)
+      } catch (error) {
+        console.error('Failed to load MediaPipe scripts:', error)
+      }
+    }
+
+    loadScripts()
+  }, [])
+
+  useEffect(() => {
+    if (isEnabled && !stream && scriptsLoaded) {
       initializeCamera()
     }
     return () => {
-      // Cleanup when component unmounts or isEnabled changes
       cleanupCamera()
     }
-  }, [isEnabled])
+  }, [isEnabled, scriptsLoaded])
 
   // Cleanup function
   const cleanupCamera = useCallback(() => {
@@ -111,10 +156,8 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload)
-      // Don't cleanup on component unmount if we're just re-rendering
-      // The cleanup will happen when isEnabled becomes false
     }
-  }, []) // Remove cleanupCamera dependency to prevent re-running
+  }, [cleanupCamera])
 
   const initializeCamera = async () => {
     try {
@@ -159,21 +202,27 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
   const initializeFaceMesh = async () => {
     try {
       console.log('BlinkDetector: Initializing MediaPipe FaceMesh...')
-      const [{ FaceMesh }, { Camera }] = await Promise.all([
-        import('@mediapipe/face_mesh'),
-        import('@mediapipe/camera_utils')
-      ])
-      console.log('BlinkDetector: MediaPipe modules loaded successfully')
+      
+      // Use the globally loaded MediaPipe objects
+      const FaceMesh = (window as any).FaceMesh
+      const Camera = (window as any).Camera
+
+      if (!FaceMesh || !Camera) {
+        console.error('MediaPipe modules not loaded')
+        return
+      }
+
+      console.log('BlinkDetector: MediaPipe modules available')
       
       const mesh = new FaceMesh({
-        locateFile: (file) => {
+        locateFile: (file: string) => {
           return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
         }
       })
 
       mesh.setOptions({
         maxNumFaces: 1,
-        refineLandmarks: true, // Better eye landmarks
+        refineLandmarks: true,
         minDetectionConfidence: 0.5,
         minTrackingConfidence: 0.5
       })
@@ -216,11 +265,8 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
       const ear = calculateEAR(landmarks)
       
       setCurrentEAR(ear)
-      
-      // Detect blinks using simple threshold
       detectBlink(ear)
     } else {
-      // No face detected
       console.log('BlinkDetector: No face detected in frame')
     }
   }, [])
@@ -229,9 +275,7 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
     if (!landmarks || landmarks.length < 468) return 0
 
     try {
-      // Left eye landmarks (6 points for EAR calculation)
       const LEFT_EYE = [33, 160, 158, 133, 153, 144]
-      // Right eye landmarks (6 points for EAR calculation)  
       const RIGHT_EYE = [362, 385, 387, 263, 373, 380]
 
       const leftEyePoints = LEFT_EYE.map(i => landmarks[i])
@@ -250,22 +294,17 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
     if (!eyeLandmarks || eyeLandmarks.length < 6) return 0
 
     try {
-      // Convert normalized coordinates to pixel coordinates
       const points = eyeLandmarks.map(landmark => ({
         x: landmark.x * 320,
         y: landmark.y * 240
       }))
 
-      // Calculate vertical distances (eye height)
       const v1 = Math.sqrt(Math.pow(points[1].x - points[5].x, 2) + Math.pow(points[1].y - points[5].y, 2))
       const v2 = Math.sqrt(Math.pow(points[2].x - points[4].x, 2) + Math.pow(points[2].y - points[4].y, 2))
-      
-      // Calculate horizontal distance (eye width)
       const h = Math.sqrt(Math.pow(points[0].x - points[3].x, 2) + Math.pow(points[0].y - points[3].y, 2))
       
       if (h === 0) return 0
       
-      // Eye Aspect Ratio = (vertical1 + vertical2) / (2 * horizontal)
       const ear = (v1 + v2) / (2.0 * h)
       return ear
     } catch (error) {
@@ -274,39 +313,31 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
   }
 
   const detectBlink = (currentEar: number) => {
-    const BLINK_THRESHOLD = 0.25 // Simple threshold for blink detection
+    const BLINK_THRESHOLD = 0.25
 
     const isBlinkFrame = currentEar < BLINK_THRESHOLD
     const currentTime = Date.now()
 
     if (isBlinkFrame) {
-      // Start or continue a blink
       if (!isBlinkingRef.current) {
-        // Start of a new blink
         isBlinkingRef.current = true
         blinkStartTimeRef.current = Date.now()
-        setLastBlinkDetected(true) // Visual indicator
+        setLastBlinkDetected(true)
         console.log(`👁️ BLINK START: EAR=${currentEar.toFixed(3)}`)
       }
-      // Continue existing blink - no action needed, just track duration
     } else {
-      // Not blinking in this frame
       if (isBlinkingRef.current && blinkStartTimeRef.current) {
-        // End of blink - calculate duration
         const blinkDuration = currentTime - blinkStartTimeRef.current
-        const isLong = blinkDuration >= 400 // 400ms = long blink (dash)
+        const isLong = blinkDuration >= 400
 
-        // Reset blink state
         isBlinkingRef.current = false
         blinkStartTimeRef.current = null
 
-        // Count the blink
         setBlinkCount(prev => prev + 1)
 
         console.log(`🔥 BLINK END! Duration: ${blinkDuration}ms, Long: ${isLong} (${isLong ? 'DASH' : 'DOT'})`)
         onBlink(isLong)
 
-        // Reset visual indicator after a delay
         if (blinkTimeoutRef.current) {
           clearTimeout(blinkTimeoutRef.current)
         }
@@ -316,8 +347,7 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
       }
     }
 
-    // Debug logging
-    if (Math.random() < 0.05) { // Log 5% of frames
+    if (Math.random() < 0.05) {
       console.log(`EAR: ${currentEar.toFixed(3)}, Blinking: ${isBlinkingRef.current}`)
     }
   }
@@ -350,6 +380,11 @@ export default function BlinkDetector({ onBlink, isEnabled }: BlinkDetectorProps
         <div className="absolute bottom-0 left-0 text-xs text-white bg-black/50 px-1">
           EAR: {currentEAR.toFixed(2)}
         </div>
+        {!scriptsLoaded && (
+          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+            <div className="text-white text-xs">Loading...</div>
+          </div>
+        )}
       </div>
       
       {/* Status Info Below Camera */}

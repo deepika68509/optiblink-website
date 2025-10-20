@@ -24,7 +24,10 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/assets/icons/optiblink-logo.svg" />
         <link rel="apple-touch-icon" href="/assets/icons/optiblink-logo.svg" />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   )
 }

@@ -124,7 +124,7 @@ export default function Header() {
               <div className="space-y-3 py-4">
                 <Link 
                   href="/#about" 
-                  className="block text-white text-xl py-3.5 border-b border-white/5 flex items-center justify-between hover:bg-white/5 hover:text-neon-purple rounded-lg px-4 transition-all duration-300"
+                  className="flex text-white text-xl py-3.5 border-b border-white/5 items-center justify-between hover:bg-white/5 hover:text-neon-purple rounded-lg px-4 transition-all duration-300"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span>About</span>
@@ -135,7 +135,7 @@ export default function Header() {
                 
                 <Link 
                   href="/#how-it-works" 
-                  className="block text-white text-xl py-3.5 border-b border-white/5 flex items-center justify-between hover:bg-white/5 hover:text-neon-purple rounded-lg px-4 transition-all duration-300"
+                  className="flex text-white text-xl py-3.5 border-b border-white/5 items-center justify-between hover:bg-white/5 hover:text-neon-purple rounded-lg px-4 transition-all duration-300"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span>How It Works</span>
@@ -146,7 +146,7 @@ export default function Header() {
                 
                 <Link 
                   href="/documentation" 
-                  className="block text-white text-xl py-3.5 border-b border-white/5 flex items-center justify-between hover:bg-white/5 hover:text-neon-purple rounded-lg px-4 transition-all duration-300"
+                  className="flex text-white text-xl py-3.5 border-b border-white/5 items-center justify-between hover:bg-white/5 hover:text-neon-purple rounded-lg px-4 transition-all duration-300"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span>Documentation</span>
@@ -157,7 +157,7 @@ export default function Header() {
                 
                 <Link 
                   href="/game" 
-                  className="block text-white text-xl py-3.5 border-b border-white/5 flex items-center justify-between hover:bg-white/5 hover:text-neon-purple rounded-lg px-4 transition-all duration-300"
+                  className="flex text-white text-xl py-3.5 border-b border-white/5 items-center justify-between hover:bg-white/5 hover:text-neon-purple rounded-lg px-4 transition-all duration-300"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span>Game</span>
@@ -168,7 +168,7 @@ export default function Header() {
                 
                 <Link 
                   href="/contact" 
-                  className="block text-white text-xl py-3.5 border-b border-white/5 flex items-center justify-between hover:bg-white/5 hover:text-neon-purple rounded-lg px-4 transition-all duration-300"
+                  className="flex text-white text-xl py-3.5 border-b border-white/5 items-center justify-between hover:bg-white/5 hover:text-neon-purple rounded-lg px-4 transition-all duration-300"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span>Contact</span>

@@ -453,14 +453,18 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: 'easeOut', delay: 0.45 }}
             >
-              <Link 
-                href="https://github.com/deepika68509/optiblink-website/releases/download/v1/optiblink_standalone.exe"
-                className="btn-primary text-lg px-8 py-4"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Download .exe
-              </Link>
+              <div className="relative group">
+                <button
+                  className="btn-primary text-lg px-8 py-4 cursor-not-allowed opacity-90"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  Download .exe
+                </button>
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-black/90 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                  The exe is not uploaded yet, it will be updated soon
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-black/90"></div>
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         </motion.section>
@@ -760,14 +764,20 @@ export default function Home() {
               <p className="text-white/70 mb-6 text-lg">
                 Ready to experience the future of communication?
               </p>
-              <Link 
-                href="https://github.com/deepika68509/optiblink-website/releases/download/v1/optiblink_standalone.exe"
-                className="btn-primary text-lg px-8 py-4"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Get Started Now
-              </Link>
+              <div className="relative inline-block group">
+                <Link 
+                  href="https://github.com/deepika68509/optiblink-website/releases/download/v1/optiblink_standalone.exe"
+                  className="btn-primary text-lg px-8 py-4"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Get Started Now
+                </Link>
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-black/90 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+                  The exe is not uploaded yet, it will be updated soon
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-black/90"></div>
+                </div>
+              </div>
             </div>
           </motion.div>
         </motion.section>

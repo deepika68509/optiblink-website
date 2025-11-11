@@ -100,10 +100,14 @@ export default function Header() {
             </nav>
 
             {/* CTA Button - Hidden on mobile and tablet */}
-            <div className="hidden lg:block">
-              <Link href="https://github.com/deepika68509/optiblink-website/releases/download/v1/optiblink_standalone.exe" className="btn-primary">
+            <div className="hidden lg:block relative group">
+              <Link href="" className="btn-primary">
                 Download Now
               </Link>
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-black/90 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                The exe is not uploaded yet, it will be updated soon
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -mb-1 border-4 border-transparent border-b-black/90"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -178,7 +182,7 @@ export default function Header() {
                 </Link>
                 
                 {/* Download button - glass effect */}
-                <div className="pt-8">
+                <div className="pt-8 relative group">
                   <Link 
                     href="/#download" 
                     className="bg-gradient-to-br from-neon-purple/90 to-accent-purple/90 backdrop-blur-sm hover:from-neon-purple hover:to-accent-purple text-white font-medium rounded-xl w-full block py-4 text-center text-lg shadow-lg shadow-purple-900/30 border border-white/10 transition-all duration-300"
@@ -186,6 +190,10 @@ export default function Header() {
                   >
                     Download APK
                   </Link>
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-black/90 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                    The exe is not uploaded yet, it will be updated soon
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -mb-1 border-4 border-transparent border-b-black/90"></div>
+                  </div>
                 </div>
               </div>
             </div>

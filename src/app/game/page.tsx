@@ -715,58 +715,38 @@ export default function Game() {
           <div className={`bg-neutral-dark border border-neon-purple/30 rounded-xl ${isExpandedView ? 'h-full rounded-none overflow-y-auto' : 'overflow-hidden'}`}>
             {/* Game Stats */}
             {gameStarted && (
-              <div className="bg-neutral-darker p-3 md:p-4 border-b border-neon-purple/20 relative">
-                {/* Exit Button - only show when in fullscreen - moved to top right */}
-                {isExpandedView && (
-                  <button
-                    onClick={resetGame}
-                    className="absolute top-2 right-2 md:top-3 md:right-3 z-50 px-3 py-2.5 bg-red-500/80 hover:bg-red-600/90 border border-red-400/50 rounded-lg text-white transition-all duration-200 shadow-lg backdrop-blur-sm flex items-center gap-2 touch-manipulation"
-                    title="Exit Game"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-sm font-medium">Exit</span>
-                  </button>
-                )}
-                
-                {/* Stats and Controls - Better Layout */}
-                <div className="space-y-3">
-                  {/* Top Row: Score Stats */}
-                  <div className="flex flex-wrap gap-3 md:gap-6 text-sm md:text-base text-white pr-16 md:pr-20">
+              <div className="bg-neutral-darker p-3 md:p-4 border-b border-neon-purple/20">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center text-white gap-3 md:gap-0">
+                  <div className="flex flex-wrap gap-3 md:gap-6 text-sm md:text-base">
                     <span>Score: <span className="text-neon-purple font-bold">{gameStats.score}</span></span>
                     <span>Level: <span className="text-neon-purple font-bold">{gameStats.level}</span></span>
                     <span>Lives: <span className="text-red-400 font-bold">{'❤️'.repeat(Math.max(0, lives))}</span></span>
                     <span>Accuracy: <span className="text-neon-purple font-bold">{gameStats.accuracy}%</span> <span className="text-white/50 text-xs">({gameStats.bubblesPopped}/{gameStats.totalBubbles})</span></span>
                   </div>
-                  
-                  {/* Bottom Row: Current Morse and Controls */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-white">
-                    <span className="text-sm md:text-base whitespace-nowrap">Current: <span className="text-yellow-400 font-mono text-base md:text-lg font-bold">{currentMorse || '___'}</span></span>
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={checkMorseCode}
-                        className="px-4 py-2 bg-neon-purple/20 border border-neon-purple/50 rounded text-white text-sm hover:bg-neon-purple/30 touch-manipulation"
-                      >
-                        Submit
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setCurrentMorse('')
-                          // Clear auto-submit timer
-                          if (autoSubmitTimeoutRef.current) {
-                            clearTimeout(autoSubmitTimeoutRef.current)
-                            autoSubmitTimeoutRef.current = undefined
-                          }
-                        }}
-                        className="px-4 py-2 bg-red-500/20 border border-red-500/50 rounded text-white text-sm hover:bg-red-500/30 touch-manipulation"
-                      >
-                        Clear
-                      </button>
-                      {blinkDetected && (
-                        <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                      )}
-                    </div>
+                  <div className="flex items-center space-x-2 md:space-x-4 w-full md:w-auto">
+                    <span className="text-sm md:text-base">Current: <span className="text-yellow-400 font-mono text-base md:text-lg">{currentMorse || '___'}</span></span>
+                    <button 
+                      onClick={checkMorseCode}
+                      className="px-3 py-2 md:px-3 md:py-1 bg-neon-purple/20 border border-neon-purple/50 rounded text-white text-sm md:text-xs hover:bg-neon-purple/30 touch-manipulation min-h-[44px]"
+                    >
+                      Submit
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setCurrentMorse('')
+                        // Clear auto-submit timer
+                        if (autoSubmitTimeoutRef.current) {
+                          clearTimeout(autoSubmitTimeoutRef.current)
+                          autoSubmitTimeoutRef.current = undefined
+                        }
+                      }}
+                      className="px-3 py-2 md:px-3 md:py-1 bg-red-500/20 border border-red-500/50 rounded text-white text-sm md:text-xs hover:bg-red-500/30 touch-manipulation min-h-[44px]"
+                    >
+                      Clear
+                    </button>
+                    {blinkDetected && (
+                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                    )}
                   </div>
                 </div>
               </div>
